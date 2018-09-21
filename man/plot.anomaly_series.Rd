@@ -15,6 +15,9 @@
 
 \item{...}{Other parameters to be passed to plotting methods.}
 }
+\value{
+A ggplot object
+}
 \description{
 Plot method for anomaly_series objects as returned by the \code{\link{anomaly_series}} method.
 }

@@ -5,9 +5,11 @@
 
 
 extern SEXP MeanVarAnomaly(SEXP, SEXP, SEXP, SEXP, SEXP);
+extern SEXP MeanAnomaly(SEXP, SEXP, SEXP, SEXP, SEXP);
 
 static const R_CallMethodDef CallEntries[] = {
     {"MeanVarAnomaly", (DL_FUNC) &MeanVarAnomaly, 5},
+    {"MeanAnomaly", (DL_FUNC) &MeanAnomaly, 5},
     {NULL, NULL, 0}
 };
 

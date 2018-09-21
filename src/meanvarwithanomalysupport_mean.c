@@ -12,19 +12,17 @@
 
 bool check_user_interrupt() {return R_ToplevelExec(check_user_interrupt_handler,NULL) == FALSE;}*/
 
-void populateorderedobservationlist(struct orderedobservationlist **list, double* x , int n) 
+void populateorderedobservationlist_mean(struct orderedobservationlist_mean **list, double* x , int n) 
 {
 
 	int ii = 0;
 
-	*list = (struct orderedobservationlist*) calloc( n+2 , sizeof( struct orderedobservationlist ) );
+	*list = (struct orderedobservationlist_mean*) calloc( n+2 , sizeof( struct orderedobservationlist_mean ) );
 	
 	(*list)[0].numberofobservation = 0;
 	(*list)[0].observation = 0;
-	(*list)[0].observationsquared = 0;
 
 	(*list)[0].cumulativesum = 0;
-	(*list)[0].cumulativesumofsquares = 0;
 	(*list)[0].optimalcostofprevious = 0;
 	(*list)[0].segmentcost = 0;
 
@@ -33,7 +31,7 @@ void populateorderedobservationlist(struct orderedobservationlist **list, double
 	(*list)[0].option = -99;
 
 	(*list)[0].destruction = n+100;
-	(*list)[0].next = (orderedobservationlist*)&((*list)[1]);
+	(*list)[0].next = (orderedobservationlist_mean*)&((*list)[1]);
 	(*list)[0].previous = NULL;
 
 	for (ii = 1; ii < n+1; ii++)
@@ -42,10 +40,8 @@ void populateorderedobservationlist(struct orderedobservationlist **list, double
 
 		(*list)[ii].numberofobservation = ii;
 		(*list)[ii].observation = x[ii-1];
-		(*list)[ii].observationsquared = x[ii-1]*x[ii-1];
 
 		(*list)[ii].cumulativesum = 0;
-		(*list)[ii].cumulativesumofsquares = 0;
 		(*list)[ii].optimalcostofprevious = 0;
 		(*list)[ii].segmentcost = 0;
 
@@ -61,10 +57,8 @@ void populateorderedobservationlist(struct orderedobservationlist **list, double
 
 	(*list)[n+1].numberofobservation = n+1;
 	(*list)[n+1].observation = 0;
-	(*list)[n+1].observationsquared = 0;
 
 	(*list)[n+1].cumulativesum = 0;
-	(*list)[n+1].cumulativesumofsquares = 0;
 	(*list)[n+1].optimalcostofprevious = 0;
 	(*list)[n+1].segmentcost = 0;
 
@@ -78,55 +72,43 @@ void populateorderedobservationlist(struct orderedobservationlist **list, double
 
 }
 
-void updatewithobservation(int ii, struct orderedobservationlist *list, double penaltychange)
+void updatewithobservation_mean(int ii, struct orderedobservationlist_mean *list, double penaltychange)
 {
 	
-	double factor = 0, x, xsquared, varianceestimate;
+	double factor = 0, x, saving;
 
 	x        = list[ii].observation;
-	xsquared = list[ii].observationsquared;
 
-     	struct orderedobservationlist* current = NULL;
+     	struct orderedobservationlist_mean* current = NULL;
 	current = list[0].next;
 
 	while (current->numberofobservation < ii+1)
 	{
 		factor  = (ii - current->numberofobservation + 1);
 		current->cumulativesum = current->cumulativesum + (x - current->cumulativesum)/factor;
-		current->cumulativesumofsquares = current->cumulativesumofsquares + (xsquared - current->cumulativesumofsquares)/factor;
 
-		varianceestimate = current->cumulativesumofsquares - current->cumulativesum*current->cumulativesum;
+		saving = current->cumulativesum * current->cumulativesum * factor;
 
-		if (varianceestimate <= DBL_MIN)
-		{
-			varianceestimate = DBL_MIN;
-		}
-
-		current->segmentcost = current->optimalcostofprevious + factor*(1+log(varianceestimate)) + penaltychange;
+		current->segmentcost = current->optimalcostofprevious - saving + penaltychange;
 		current = current->next;
 	}
 
 }
 
-void findoptimaloption(int ii, struct orderedobservationlist *list, int minseglength, double penaltyoutlier)
+void findoptimaloption_mean(int ii, struct orderedobservationlist_mean *list, int minseglength, double penaltyoutlier)
 {
 	
 	int option = 0;
-	struct orderedobservationlist *bestcut = NULL;
+	struct orderedobservationlist_mean *bestcut = NULL;
 	double optimalscore = 0, scoreanomalous = 0, squareestimate = 0;
 	
-	optimalscore = list[ii].optimalcostofprevious + list[ii].observationsquared;
+	optimalscore = list[ii].optimalcostofprevious;
 	bestcut= &(list[ii-1]);
 	option = 0;
 
-	squareestimate  = list[ii].observationsquared; 
+	squareestimate  = list[ii].observation * list[ii].observation;
 
-	if(squareestimate <= DBL_MIN)
-	{
-		squareestimate = DBL_MIN;
-	}
-
-	scoreanomalous = list[ii].optimalcostofprevious + 1 + log(squareestimate) + penaltyoutlier;
+	scoreanomalous = list[ii].optimalcostofprevious - squareestimate + penaltyoutlier;
 	
 	if (scoreanomalous < optimalscore)
 	{
@@ -134,7 +116,7 @@ void findoptimaloption(int ii, struct orderedobservationlist *list, int minsegle
 		option = 1;
 	}
 
-	struct orderedobservationlist* currentcheck = NULL;
+	struct orderedobservationlist_mean* currentcheck = NULL;
 	currentcheck = list[0].next;
 
 	while (currentcheck->numberofobservation < ii - minseglength + 2)
@@ -155,13 +137,13 @@ void findoptimaloption(int ii, struct orderedobservationlist *list, int minsegle
 	list[ii+1].optimalcostofprevious = optimalscore;
 }
 
-void pruner(struct orderedobservationlist *list, int ii, double penaltychange, int minseglength)
+void pruner_mean(struct orderedobservationlist_mean *list, int ii, double penaltychange, int minseglength)
 {
 
 	double threshold;
 	threshold = penaltychange + list[ii].optimalcost;
 
-     	struct orderedobservationlist* current = NULL;
+     	struct orderedobservationlist_mean* current = NULL;
 	current = list[0].next;
 
 	while (current->numberofobservation < ii - minseglength + 2)
@@ -188,7 +170,7 @@ void pruner(struct orderedobservationlist *list, int ii, double penaltychange, i
 }
 
 
-int solveorderedobservationlist(struct orderedobservationlist *list, int n, double penaltychange, double penaltyoutlier, int minseglength)
+int solveorderedobservationlist_mean(struct orderedobservationlist_mean *list, int n, double penaltychange, double penaltyoutlier, int minseglength)
 {
 
 	int ii = 1;
@@ -196,9 +178,9 @@ int solveorderedobservationlist(struct orderedobservationlist *list, int n, doub
 	for (ii = 1; ii < n+1; ii++)
 	{
 	  
-		updatewithobservation(ii,list,penaltychange);
-		findoptimaloption(ii,list,minseglength,penaltyoutlier);
-		pruner(list,ii,penaltychange,minseglength);
+		updatewithobservation_mean(ii,list,penaltychange);
+		findoptimaloption_mean(ii,list,minseglength,penaltyoutlier);
+		pruner_mean(list,ii,penaltychange,minseglength);
 		
 		if (ii % 128 == 0)
 		{
@@ -215,12 +197,12 @@ int solveorderedobservationlist(struct orderedobservationlist *list, int n, doub
 }
 
 
-void changepointreturn(struct orderedobservationlist *list, int n, int* numberofchanges, int** changepoints)
+void changepointreturn_mean(struct orderedobservationlist_mean *list, int n, int* numberofchanges, int** changepoints)
 {
 
 	*numberofchanges = 1;
 	int  ii = 1;
-	struct orderedobservationlist* current;
+	struct orderedobservationlist_mean* current;
 
 	current = list[n+1].previous;
 	
