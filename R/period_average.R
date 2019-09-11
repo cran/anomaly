@@ -1,3 +1,29 @@
+#' A function to search the Kepler data for periodically recurring dips in luminosity.
+#'
+#' @name period_average
+#'
+#' @description The signal of transiting planets is very weak, especially if the planet is small. This function amplifies it by exploiting the periodicity of the signal. All observations
+#' times are taken modulo the period and then binned. An average is then taken within each bin, those averages then stored as a vector and returned. If the orbital period of an
+#' exoplanet (or an integer fraction thereof) is used as argument for "period", the signal to noise ratio of the transit is improved, which can allow for the planet's detection.
+#'
+#' @param data A dataframe with one column named "Day" and the other "Brightness", such as Kepler10965588 (included in the package).
+#' @param period A numeric which is larger than 0 representing the period (in days) which is to be examined.
+#'
+#' @return A vector of numerics.
+#'
+#' @examples
+#' library(anomaly)
+#' data(Lightcurves)
+#' ### Plot the data for Kepler 10965588: No transit apparent
+#' plot(Lightcurves$Kepler10965588$Day,Lightcurves$Kepler10965588$Brightness,xlab = "Day",pch=".")
+#' ### Examine a period of 62.9 days for Kepler 10965588
+#' binned_data = period_average(Lightcurves$Kepler10965588,62.9)
+#' inferred_anomalies = anomaly_series(binned_data)
+#' plot(inferred_anomalies,xlab="Bin")
+#' # We found a planet! 
+#'
+#' @export
+#' 
 period_average = function(data,period){
     
 

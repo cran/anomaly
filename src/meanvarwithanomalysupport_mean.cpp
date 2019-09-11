@@ -8,9 +8,10 @@
 
 #include "Functions.h"
 
-/*static void check_user_interrupt_handler() {R_CheckUserInterrupt();}
+#include "check_user_interrupt.h"
 
-bool check_user_interrupt() {return R_ToplevelExec(check_user_interrupt_handler,NULL) == FALSE;}*/
+namespace anomaly
+{
 
 void populateorderedobservationlist_mean(struct orderedobservationlist_mean **list, double* x , int n) 
 {
@@ -72,10 +73,11 @@ void populateorderedobservationlist_mean(struct orderedobservationlist_mean **li
 
 }
 
-void updatewithobservation_mean(int ii, struct orderedobservationlist_mean *list, double penaltychange)
+void updatewithobservation_mean(int ii, struct orderedobservationlist_mean *list, double* penaltychange)
 {
 	
-	double factor = 0, x, saving;
+	double x, saving;
+	int factor = 0;
 
 	x        = list[ii].observation;
 
@@ -89,7 +91,7 @@ void updatewithobservation_mean(int ii, struct orderedobservationlist_mean *list
 
 		saving = current->cumulativesum * current->cumulativesum * factor;
 
-		current->segmentcost = current->optimalcostofprevious - saving + penaltychange;
+		current->segmentcost = current->optimalcostofprevious - saving + penaltychange[factor - 1];
 		current = current->next;
 	}
 
@@ -137,14 +139,23 @@ void findoptimaloption_mean(int ii, struct orderedobservationlist_mean *list, in
 	list[ii+1].optimalcostofprevious = optimalscore;
 }
 
-void pruner_mean(struct orderedobservationlist_mean *list, int ii, double penaltychange, int minseglength)
+void pruner_mean(struct orderedobservationlist_mean *list, int ii, double penaltychange_max, int minseglength, int maxseglength)
 {
 
 	double threshold;
-	threshold = penaltychange + list[ii].optimalcost;
+	threshold = penaltychange_max + list[ii].optimalcost;
 
      	struct orderedobservationlist_mean* current = NULL;
 	current = list[0].next;
+
+	if (maxseglength < ii - current->numberofobservation + 2) 
+	{
+
+		current->previous->next = current->next;
+		current->next->previous = current->previous;
+		current = current->next;
+
+	}
 
 	while (current->numberofobservation < ii - minseglength + 2)
 	{
@@ -170,17 +181,24 @@ void pruner_mean(struct orderedobservationlist_mean *list, int ii, double penalt
 }
 
 
-int solveorderedobservationlist_mean(struct orderedobservationlist_mean *list, int n, double penaltychange, double penaltyoutlier, int minseglength)
+int solveorderedobservationlist_mean(struct orderedobservationlist_mean *list, int n, double *penaltychange, double penaltyoutlier, int minseglength, int maxseglength)
 {
 
 	int ii = 1;
+
+	double penaltychange_max = 0.0;
+	
+	for (ii = 0; ii < maxseglength; ii++)
+	{
+		if (penaltychange_max < penaltychange[ii]){ penaltychange_max = penaltychange[ii];}
+	}
 
 	for (ii = 1; ii < n+1; ii++)
 	{
 	  
 		updatewithobservation_mean(ii,list,penaltychange);
 		findoptimaloption_mean(ii,list,minseglength,penaltyoutlier);
-		pruner_mean(list,ii,penaltychange,minseglength);
+		pruner_mean(list,ii,penaltychange_max,minseglength,maxseglength);
 		
 		if (ii % 128 == 0)
 		{
@@ -213,10 +231,11 @@ void changepointreturn_mean(struct orderedobservationlist_mean *list, int n, int
 	}
 
 	
-        *changepoints = calloc(2*(*numberofchanges) ,sizeof(int));
+        *changepoints = (int*)calloc(3*(*numberofchanges) ,sizeof(int));
 
 	(*changepoints)[0] = -1; 
 	(*changepoints)[1] = -1;
+	(*changepoints)[2] = -1;
  
 	current = list[n+1].previous;
 	
@@ -227,8 +246,9 @@ void changepointreturn_mean(struct orderedobservationlist_mean *list, int n, int
 
 		if (current->option > 0)
 		{
-			(*changepoints)[2*ii  ] = current->numberofobservation;
-			(*changepoints)[2*ii+1] = current->optimalcut->numberofobservation + 1;
+			(*changepoints)[3*ii  ] = current->numberofobservation;
+			(*changepoints)[3*ii+1] = current->optimalcut->numberofobservation + 1;
+			(*changepoints)[3*ii+2] = current->option;
 			ii++;
 		}
 
@@ -239,8 +259,24 @@ void changepointreturn_mean(struct orderedobservationlist_mean *list, int n, int
 
 }
 
+void changepointreturn_online_mean(struct orderedobservationlist_mean *list, int n, int** changepoints)
+{
+	
+  *changepoints = (int*)calloc(2*n ,sizeof(int));
+	
+	int ii = 0;
+
+	for (ii = 1; ii < n+1; ii++)
+	{
+		(*changepoints)[2*ii-2] = list[ii].option;
+		(*changepoints)[2*ii-1] = list[ii].optimalcut->numberofobservation;
+	}
+	
+
+}
 
 
+} // namespace anomaly
 
 
 

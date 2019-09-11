@@ -2,7 +2,7 @@
 % Please edit documentation in R/anomaly_series.R
 \name{anomaly_series}
 \alias{anomaly_series}
-\title{A technique for detecting anomalous segments based on CAPA (Collective And Point Anomaly) by Fisch et al.}
+\title{A technique for detecting anomalous segments based on CAPA.}
 \usage{
 anomaly_series(x, penaltywindow = NULL, penaltyanomaly = NULL,
   minimumsegmentlength = 10, warnings = TRUE, method = "meanvar")
@@ -18,17 +18,14 @@ anomaly_series(x, penaltywindow = NULL, penaltyanomaly = NULL,
 
 \item{warnings}{A logical determining whether the warnings should be displayed. It defaults to TRUE.}
 
-\item{method}{A string indicating which type of deviations from the baseline are considered. Can be "meanvar" for collective anomalies caracterised by joint changes in mean and variance (the default) and "mean" for collective anomalies characterised by changes in mean only.}
+\item{method}{A string indicating which type of deviations from the baseline are considered. Can be "meanvar" for collective anomalies characterised by joint changes in mean and
+variance (the default) and "mean" for collective anomalies characterised by changes in mean only.}
 }
 \value{
 An anomaly_series object.
 }
 \description{
-CAPA (Collective And Point Anomaly) by A. T. M. Fisch, I. A. Eckley, and P. N. Fearnhead assumes that the data has a certain mean and variance for most
-timepoints and detects segments in which the mean and/or variance deviates from the typical mean and variance as collective anomalies. It also detects point
-outliers and returns a measure of strength for the changes in mean and variance. If the number of anomalous windows scales linearly with the number of
-data points, CAPA scales linearly with the number of data points. At
-worst, if there are no anomalies at all, the computational cost of CAPA scales quadratically with the number of data points.
+Method for calling \code{\link{capa.uv}} in a manner consistent with older versions of the anomaly package.
 }
 \examples{
 library(anomaly)
@@ -62,11 +59,9 @@ plot(Lightcurves$Kepler10965588$Day,Lightcurves$Kepler10965588$Brightness,xlab =
 binned_data = period_average(Lightcurves$Kepler10965588,62.9)
 inferred_anomalies = anomaly_series(binned_data)
 plot(inferred_anomalies,xlab="Bin")
-# We found a planet! 
+# We found a planet!
 
 }
 \references{
-  \insertRef{2018arXiv180601947F}{anomaly}
+\insertRef{2018arXiv180601947F}{anomaly}
 }
-
-
