@@ -86,7 +86,7 @@ std::tuple<std::list<std::tuple<int,int> >, std::list<double> > pass(const std::
       std::vector<double> pJ(N);
       std::transform(cumsums.begin(),cumsums.end(),pJ.begin(),[&a,&b,&norm](auto& C)
     {
-      return 2*cdf(complement(norm, fabs((C[b+1]-C[a])/sqrt(b-a+1))));
+      return 2*cdf(complement(norm, fabs((C[b+1]-C[a])/sqrt((double)(b-a+1)))));
     });
       sort(pJ.begin(),pJ.end());
       std::transform(pJ.begin(),pJ.end(),index.begin(),pJ.begin(),[&sqrtN,&dN](auto& p, auto& i)
@@ -123,7 +123,7 @@ std::tuple<std::list<std::tuple<int,int> >, std::list<double> > pass(const std::
 
   // create Ihat
   std::list<std::tuple<int,int> > Ihat;
-  std::list<double> xstar;
+  std::list<double> xstar;  
   if(I.size() > 0)
     {
       while(true)
@@ -137,9 +137,10 @@ std::tuple<std::list<std::tuple<int,int> >, std::list<double> > pass(const std::
 	  auto pos = std::distance(V.begin(), std::max_element(V.begin(), V.end()));
 	  auto itI = I.begin();
 	  std::advance(itI,pos);
+	  auto valitI = *itI;
 	  Ihat.push_back(std::get<1>(*itI));
 	  xstar.push_back(*std::max_element(V.begin(), V.end()));
-	  I.remove_if([&itI](auto& p){return !disjoint(std::get<1>(p),std::get<1>(*itI));});
+	  I.remove_if([&valitI](auto& p){return !disjoint(std::get<1>(p),std::get<1>(valitI));});
 	  if(I.size()==0)
 	    {
 	      break;
