@@ -369,6 +369,7 @@ setMethod("collective_anomalies",signature=list("capa.mv.class"),
 #' @docType methods
 #'
 #' @param object An S4 class produced by \code{\link{capa}}, \code{\link{capa.uv}}, \code{\link{capa.mv}}, or \code{\link{pass}}.
+#' @param ... Ignored.
 #' 
 #' @rdname summary-methods
 #'
@@ -377,7 +378,7 @@ setMethod("collective_anomalies",signature=list("capa.mv.class"),
 #' @seealso \code{\link{capa}},\code{\link{capa.uv}},\code{\link{capa.mv}},,\code{\link{pass}},\code{\link{point_anomalies}},\code{\link{collective_anomalies}}. 
 #'
 #' @export
-setMethod("summary",signature=list("capa.class"),function(object)
+setMethod("summary",signature=list("capa.class"),function(object,...)
 {
     epoch=dim(object@data)[1]
     cat("CAPA detecting changes in ",sep="")
@@ -417,7 +418,7 @@ setMethod("summary",signature=list("capa.class"),function(object)
 #' @aliases summary,capa.uv.class-method
 #'
 #' @export
-setMethod("summary",signature=list("capa.uv.class"),function(object)
+setMethod("summary",signature=list("capa.uv.class"),function(object,...)
 {
     cat("Univariate ",sep="")
     cat("CAPA detecting changes in ",sep="")
@@ -458,7 +459,7 @@ setMethod("summary",signature=list("capa.uv.class"),function(object)
 #' @aliases summary,capa.mv.class-method
 #' 
 #' @export
-setMethod("summary",signature=list("capa.mv.class"),function(object)
+setMethod("summary",signature=list("capa.mv.class"),function(object,...)
 {
     cat("Multivariate ",sep="")
     cat("CAPA detecting changes in ",sep="")
@@ -1219,7 +1220,7 @@ capa_tile_plot<-function(object,variate_names=FALSE,epoch=dim(object@data)[1],su
 #'
 #' @rdname plot-methods
 #'
-#' @aliases plot,capa.class,ANY-method
+#' @aliases plot,capa.class-method
 #' 
 #' @seealso \code{\link{capa}},\code{\link{capa.uv}},\code{\link{capa.mv}},\code{\link{pass}}.
 #'
@@ -1289,7 +1290,7 @@ setMethod("plot",signature=list("capa.class"),function(x,subset,variate_names,ti
 #' 
 #' @rdname plot-methods
 #'
-#' @aliases plot,capa.uv.class,ANY-method
+#' @aliases plot,capa.uv.class-method
 #'
 #' @export
 setMethod("plot",signature=list("capa.uv.class"),function(x,variate_name)
@@ -1308,7 +1309,7 @@ setMethod("plot",signature=list("capa.uv.class"),function(x,variate_name)
 #'
 #' @rdname plot-methods
 #'
-#' @aliases plot,capa.mv.class,ANY-method
+#' @aliases plot,capa.mv.class-method
 #'
 #' @export
 setMethod("plot",signature=list("capa.mv.class"),function(x,subset,variate_names,tile_plot)
