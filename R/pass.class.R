@@ -1,5 +1,3 @@
-
-
 .pass.class<-setClass("pass.class",representation(data="matrix",results="data.frame",Lmax="numeric",Lmin="numeric",alpha="numeric",lambda="numeric"))
 
 pass.class<-function(data,results,Lmax,Lmin,alpha,lambda)
@@ -23,7 +21,9 @@ pass.line.plot<-function(x,subset=1:ncol(x@data),variate_names=TRUE)
     p<-ggplot(data=molten.X)
     p<-p+aes(x=k,y=value)
     p<-p+geom_line()
-    if(!Reduce("||",is.na(x@results)))
+    # check to see if there are any anomalies
+    #if(!Reduce("||",is.na(x@results)))
+    if (nrow(x@results) > 0)
     {
         p<-p+geom_vline(xintercept=x@results[,1],colour="red")
         p<-p+geom_vline(xintercept=x@results[,2],colour="red")
@@ -43,7 +43,7 @@ pass.tile.plot<-function(x,subset=1:ncol(x@data),variate_names=TRUE)
 {
     # nulling out variables used in ggplot to get the package past CRAN checks
     variable<-value<-NULL
-    df<-as.data.frame(x@data[,subset])
+    df<-as.data.frame(x@data[,rev(subset)])
     # normalise data
     for(i in 1:ncol(df))
     {
@@ -56,7 +56,8 @@ pass.tile.plot<-function(x,subset=1:ncol(x@data),variate_names=TRUE)
     ymin<-0
     ymax<-ncol(df)
     # check to see if there are any anomalies
-    if(!Reduce("||",is.na(x@results)))
+    #if(!Reduce("||",is.na(x@results)))
+    if (nrow(x@results) > 0)
         {
             p<-p+annotate("rect",xmin=x@results[,1],xmax=x@results[,2],ymin=ymin,ymax=ymax+1,alpha=0.0,color="red",fill="yellow")
         }
@@ -95,7 +96,7 @@ setMethod("plot",signature=list("pass.class"),function(x,subset,variate_names,ti
         if(is.null(tile_plot))
         {
             tile_plot<-FALSE
-            if(ncol(x@data[,subset]) > 20)
+            if(ncol(as.matrix(x@data[,subset])) > 20)
             {
                 tile_plot<-TRUE
             }
@@ -150,8 +151,6 @@ setMethod("summary",signature=list("pass.class"),function(object,...)
     cat("alpha = ",object@alpha,"\n",sep="") # tuning parameter
     cat("lambda = ",object@lambda,"\n",sep="")
     cat("Collective anomalies detected : ",nrow(object@results),"\n")
-    print(object@results)
-    cat("\n")
     invisible()
 })
 
@@ -167,6 +166,27 @@ setMethod("summary",signature=list("pass.class"),function(object,...)
 #' @export
 setMethod("show",signature=list("pass.class"),function(object)
 {
-    summary(object)
+  summary(object)
+  if (nrow(object@results) > 0){
+    print(object@results)
+  }
+  cat("\n")
+  invisible()
 })
 
+
+#' @name collective_anomalies
+#'
+#' @docType methods
+#'
+#' @rdname collective_anomalies-methods
+#'
+#' @aliases collective_anomalies,pass.class-method
+#'
+#' 
+#' 
+#' @export
+setMethod("collective_anomalies",signature=list("pass.class"),function(object)
+{
+    return(object@results)
+})

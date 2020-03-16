@@ -26,7 +26,7 @@
 #'
 #' @export
 ac_corrected<-function(X)
-    {       
+    {
         ac_corrections<-function(X)
         {
             X<-as.matrix(X)
@@ -34,7 +34,7 @@ ac_corrected<-function(X)
             m<-dim(X)[2]
             if(m == 1)
             {
-		rcor<-covMcd(matrix(c(X[2:n],X[1:(n-1)]),ncol=2),cor=TRUE)
+	    	rcor<-covMcd(matrix(c(X[2:n],X[1:(n-1)]),ncol=2),cor=TRUE)
                 psi<-rcor$cor[1,2]
                 correction_factor<-sqrt((1-psi)/(1+psi))
                 return(correction_factor)

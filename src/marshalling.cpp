@@ -13,12 +13,15 @@
 
 #include "MeanVarAnomaly.h"
 #include "MeanAnomaly.h"
+#include "RobustMeanAnomaly.h"
+#include "RobustMeanAnomalyMV.h"
 #include "sequential_quantiles.h"
 #include "recursive_anomalies.h"
 #include "recursive_mvanomalies.h"
 #include "MultivariateCOD.h"
 #include "MeanAnomalyMV.h"
 #include "pass.h"
+
 
 
 
@@ -47,6 +50,18 @@ std::vector<int> marshall_MeanAnomaly(SEXP a,
 				      SEXP g)
 {
   return MeanAnomaly(a,b,c,d,e,f,g);
+}
+
+//[[Rcpp::export]]
+std::vector<int> marshall_RobustMeanAnomaly(SEXP a,
+				            SEXP b,
+				            SEXP c,
+				            SEXP d,
+				            SEXP e,
+				            SEXP f,
+				            SEXP g)
+{
+  return RobustMeanAnomaly(a,b,c,d,e,f,g);
 }
 
 
@@ -87,7 +102,19 @@ std::vector<int> marshall_MeanVarAnomalyMV(SEXP a,
   return MeanVarAnomalyMV(a,b,c,d,e,f,g,h,i);
 }
 
-
+//[[Rcpp::export]]
+std::vector<int> marshall_RobustMeanAnomalyMV(SEXP a,
+					SEXP b,
+					SEXP c,
+					SEXP d,
+					SEXP e,
+					SEXP f,
+					SEXP g,
+					SEXP h,
+					SEXP i)
+{
+  return RobustMeanAnomalyMV(a,b,c,d,e,f,g,h,i);
+}
 
 //[[Rcpp::export]]
 std::vector<int> marshall_MeanAnomalyMV(SEXP a,
@@ -142,13 +169,19 @@ std::list<std::vector<double> > marshall_pass(const std::list<std::vector<double
 	{
 	  Rcpp::checkUserInterrupt();
 	}
-    } catch(...)
+    }  
+  catch(std::bad_alloc &e)
     {
       exitSignal.set_value();
       auto result = future.get(); // wait for it to tidy up
-      throw(std::exception());
+      Rcpp::stop("insufficient memory");
     }
-
+  catch(...)
+    {
+      exitSignal.set_value();
+      auto result = future.get(); // wait for it to tidy up
+      Rcpp::stop("user interrupt");
+    }
   
   auto result = future.get();
   auto cpts = std::get<0>(result);

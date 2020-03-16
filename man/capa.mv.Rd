@@ -18,13 +18,13 @@ capa.mv(
 \arguments{
 \item{x}{A numeric matrix with n rows and p columns containing the data which is to be inspected.}
 
-\item{beta}{A numeric vector of length p, giving the marginal penalties. If type ="meanvar" or if type = "mean" and maxlag > 0 it defaults to the penalty regime 2' described in 
-Fisch, Eckley and Fearnhead (2019). If type = "mean" and maxlag = 0 it defaults to the pointwise minimum of the penalty regimes 1, 2, and 3 in Fisch, Eckley and Fearnhead (2019).}
+\item{beta}{A numeric vector of length p, giving the marginal penalties. If type ="meanvar" or if type = "mean"/"robustmean" and maxlag > 0 it defaults to the penalty regime 2' described in 
+Fisch, Eckley, and Fearnhead (2019). If type = "mean"/"robustmean" and maxlag = 0 it defaults to the pointwise minimum of the penalty regimes 1, 2, and 3 in Fisch, Eckley, and Fearnhead (2019).}
 
 \item{beta_tilde}{A numeric constant indicating the penalty for adding an additional point anomaly. It defaults to a BIC style penalty if no argument is provided.}
 
 \item{type}{A string indicating which type of deviations from the baseline are considered. Can be "meanvar" for collective anomalies characterised by joint changes in mean and
-variance (the default) or "mean" for collective anomalies characterised by changes in mean only.}
+variance (the default), "mean" for collective anomalies characterised by changes in mean only, or "robustmean" for collective anomalies characterised by changes in mean only which can be polluted by outliers.}
 
 \item{min_seg_len}{An integer indicating the minimum length of epidemic changes. It must be at least 2 and defaults to 10.}
 
@@ -37,7 +37,7 @@ untransformed data remains available for post processing results obtained using 
 the transform, (see \code{\link{robustscale}} and \code{\link{ac_corrected}}), but a user defined function can be specified. The default value is \code{transform=robust_scale}.}
 }
 \value{
-An S4 class of type capa.mv.class.
+An instance of an S4 class of type capa.mv.class.
 }
 \description{
 This function implements MVCAPA (Multi-Variate Collective And Point Anomaly) from Fisch et al. (2019). 
@@ -47,12 +47,49 @@ at best in \code{nrow(x)}. If \code{max_seg_len} is set the runtime scales like 
 }
 \examples{
 library(anomaly)
-# generate some multivariate data
+
+### generate some multivariate data
+
 set.seed(0)
-sim.data<-simulate(n=500,p=200,mu=2,locations=c(100,200,300),
+sim.data<-simulate(n=500,p=100,mu=2,locations=c(100,200,300),
                    duration=6,proportions=c(0.04,0.06,0.08))
-res<-capa.mv(sim.data,type="mean",min_seg_len=2,max_lag=5)
-collective_anomalies(res)
+                   
+### Apply MVCAPA
+
+res<-capa.mv(sim.data,type="mean",min_seg_len=2)
+plot(res)
+
+### generate some multivariate data
+
+set.seed(2018)
+x1 = rnorm(500)
+x2 = rnorm(500)
+x3 = rnorm(500)
+x4 = rnorm(500)
+
+### Add two (lagged) collective anomalies
+
+x1[151:200] = x1[151:200]+2
+x2[171:200] = x2[171:200]+2
+x3[161:190] = x3[161:190]-3
+
+x1[351:390] = x1[371:390]+2
+x3[351:400] = x3[351:400]-3
+x4[371:400] = x4[371:400]+2
+
+### Add point anomalies
+
+x4[451] = x4[451]*max(1,abs(1/x4[451]))*5
+x4[100] = x4[100]*max(1,abs(1/x4[100]))*5
+x2[050] = x2[050]*max(1,abs(1/x2[050]))*5
+
+my_x = cbind(x1,x2,x3,x4)
+
+### Now apply MVCAPA
+
+res<-capa.mv(my_x,max_lag=20,type="mean")
+
+plot(res)
 
 }
 \references{

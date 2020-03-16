@@ -9,6 +9,10 @@ marshall_MeanAnomaly <- function(a, b, c, d, e, f, g) {
     .Call('_anomaly_marshall_MeanAnomaly', PACKAGE = 'anomaly', a, b, c, d, e, f, g)
 }
 
+marshall_RobustMeanAnomaly <- function(a, b, c, d, e, f, g) {
+    .Call('_anomaly_marshall_RobustMeanAnomaly', PACKAGE = 'anomaly', a, b, c, d, e, f, g)
+}
+
 marshall_recursive_anomalies <- function(a, b, c) {
     .Call('_anomaly_marshall_recursive_anomalies', PACKAGE = 'anomaly', a, b, c)
 }
@@ -21,6 +25,10 @@ marshall_MeanVarAnomalyMV <- function(a, b, c, d, e, f, g, h, i) {
     .Call('_anomaly_marshall_MeanVarAnomalyMV', PACKAGE = 'anomaly', a, b, c, d, e, f, g, h, i)
 }
 
+marshall_RobustMeanAnomalyMV <- function(a, b, c, d, e, f, g, h, i) {
+    .Call('_anomaly_marshall_RobustMeanAnomalyMV', PACKAGE = 'anomaly', a, b, c, d, e, f, g, h, i)
+}
+
 marshall_MeanAnomalyMV <- function(a, b, c, d, e, f, g, h, i) {
     .Call('_anomaly_marshall_MeanAnomalyMV', PACKAGE = 'anomaly', a, b, c, d, e, f, g, h, i)
 }
@@ -31,5 +39,9 @@ marshall_sequential_ests <- function(data, n, burnin, lqs, lqf0, meds, medf0, uq
 
 marshall_pass <- function(Xi, Lmax, Lmin, alpha, lambda) {
     .Call('_anomaly_marshall_pass', PACKAGE = 'anomaly', Xi, Lmax, Lmin, alpha, lambda)
+}
+
+tukey_mean <- function(x, th) {
+    .Call('_anomaly_tukey_mean', PACKAGE = 'anomaly', x, th)
 }
 

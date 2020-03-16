@@ -1,5 +1,3 @@
-
-
 #include <R.h>
 #include <Rinternals.h>
 #include <Rmath.h>
@@ -10,16 +8,15 @@
 
 #include "Functions.h"
 
+#include <string>
+#include "capa.exception.h"
+#include "user_interupt.h"
+
 using namespace anomaly;
 
 // SEXP MeanVarAnomaly(SEXP Rx, SEXP Rn, SEXP Rminlength, SEXP Rmaxlength, SEXP Rbetachange, SEXP Rbetaanomaly, SEXP Ronline)
 std::vector<int> MeanVarAnomaly(SEXP Rx, SEXP Rn, SEXP Rminlength, SEXP Rmaxlength, SEXP Rbetachange, SEXP Rbetaanomaly, SEXP Ronline)
 {
-  
-  /* 
-  Rx    : Data
-  Rn    : Length of data
-  */
 	 
  	PROTECT(Rx) ; 
  	PROTECT(Rn) ;
@@ -32,7 +29,8 @@ std::vector<int> MeanVarAnomaly(SEXP Rx, SEXP Rn, SEXP Rminlength, SEXP Rmaxleng
   	int n = 0, minlength = 0, maxlength = 0, error = 0, online = -1, ii = 0;
   	double betaanomaly = 0.0;
   	double *x = NULL, *betachange = NULL, *betavector = NULL ;
-	
+	std::string reason;
+
   
  	minlength        = *(INTEGER(Rminlength));
 	maxlength        = *(INTEGER(Rmaxlength));
@@ -42,81 +40,65 @@ std::vector<int> MeanVarAnomaly(SEXP Rx, SEXP Rn, SEXP Rminlength, SEXP Rmaxleng
   	betaanomaly      = *REAL(Rbetaanomaly);
 	online           = *INTEGER(Ronline);
 
-	betavector = (double*) calloc(maxlength, sizeof(double));
+	struct orderedobservationlist* mylist;
+
+	int numberofchanges = 0, *changes = NULL;
+
+	std::vector<int> Rout;
+
+
+	try
+	{
+		betavector = new double[maxlength];
+	}
+	catch(std::bad_alloc& e)
+	{
+		reason = "Not enough memory";
+		error = 1;
+		goto clearup;
+	}
 	
 	for (ii = 0; ii < minlength-1; ii++){betavector[ii] = 0;}
 	for (ii = minlength-1; ii < maxlength; ii++){betavector[ii] = betachange[ii+1-minlength];}
 
-	struct orderedobservationlist* mylist;
-
-	populateorderedobservationlist(&mylist, x, n); 
-
-	
-	error = solveorderedobservationlist(mylist, n, betavector, betaanomaly, minlength, maxlength);
-	
-	if (error)
+	try
 	{
-	  	free(mylist);
-		free(betavector);
-	  	UNPROTECT(7);
-		return std::vector<int>();
-	  	// return R_NilValue ; 
+		populateorderedobservationlist(&mylist, x, n);
+	}
+	catch(std::bad_alloc& e)
+	{
+		reason = "Not enough memory";
+		error = 1;
+		goto clearup;
 	}
 
-	int numberofchanges = 0, *changes = NULL;
-
-	/*
-	
-	SEXP Rout ;
+	try
+	{	
+		solveorderedobservationlist(mylist, n, betavector, betaanomaly, minlength, maxlength);
+	}
+	catch(user_interupt& a)
+	{
+		reason = "user interrupt";
+		error = 1;
+		goto clearup;
+	}
 
 	if (online == 0)
 	{
 
-		changepointreturn(mylist, n, &numberofchanges, &changes);
-	 
-  		PROTECT(Rout = allocVector(INTSXP, 3*numberofchanges));
-
-		int *out;
-  		out  = INTEGER(Rout);
- 		
-  	
-		for (ii = 0; ii < 3*numberofchanges; ii++)
+		try
 		{
-			out[ii] = changes[ii];
+			changepointreturn(mylist, n, &numberofchanges, &changes);
 		}
-
-	}
-	else
-	{
-
-		changepointreturn_online(mylist, n, &changes);
-	 
-  		PROTECT(Rout = allocVector(INTSXP, 2*n));
-
-		int *out;
-  		out  = INTEGER(Rout);
-  	
-		for (ii = 0; ii < 2*n; ii++)
+		catch(std::bad_alloc& e)
 		{
-			out[ii] = changes[ii];
+			reason = "Not enough memory";
+			error = 1;
+			goto clearup;
 		}
-
-	}
-
-
-	*/
-
-
-
-	std::vector<int> Rout;
-
-	if (online == 0)
-	{
-
-		changepointreturn(mylist, n, &numberofchanges, &changes);
-
+	
 		Rout.resize(3*numberofchanges);
-  	
+  		
 		for (ii = 0; ii < 3*numberofchanges; ii++)
 		{
 			Rout[ii] = changes[ii];
@@ -126,8 +108,19 @@ std::vector<int> MeanVarAnomaly(SEXP Rx, SEXP Rn, SEXP Rminlength, SEXP Rmaxleng
 	else
 	{
 
+		try
+		{
 		changepointreturn_online(mylist, n, &changes);
+		}
+		catch(std::bad_alloc& e)
+		{
+			reason = "Not enough memory";
+			error = 1;
+			goto clearup;
+		}
+
 		Rout.resize(2*n);
+
 		for (ii = 0; ii < 2*n; ii++)
 		{
 			Rout[ii] = changes[ii];
@@ -135,15 +128,21 @@ std::vector<int> MeanVarAnomaly(SEXP Rx, SEXP Rn, SEXP Rminlength, SEXP Rmaxleng
 
 	}
 
+clearup:
 	
-	free(changes);
-	free(betavector);
-	free(mylist); 
+	if(changes){free(changes);}
+	if(betavector){free(betavector);}
+	if(mylist){delete[] mylist;}
 
-  	// UNPROTECT(8);
 	UNPROTECT(7);
 
-	return(Rout) ; 
+	if (error != 0)
+	{
+	  throw_capa_exception(reason);
+	}
+	
+	return(Rout) ;
+
 }
 
 

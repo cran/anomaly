@@ -1,5 +1,8 @@
 #include <stdbool.h>
-
+#include "tukey.h"
+#include "Online_tukey.h"
+#include "user_interupt.h"
+#include <vector>
 
 namespace anomaly
 {
@@ -30,7 +33,7 @@ void updatewithobservation(int ii, struct orderedobservationlist *list, double* 
 
 void findoptimaloption(int ii, struct orderedobservationlist *list, int minseglength, double penaltyoutlier);
 
-int solveorderedobservationlist(struct orderedobservationlist *list, int n, double* penaltychange, double penaltyoutlier, int minseglength, int maxseglength);
+void solveorderedobservationlist(struct orderedobservationlist *list, int n, double* penaltychange, double penaltyoutlier, int minseglength, int maxseglength);
 
 void changepointreturn(struct orderedobservationlist *list, int n, int* numberofchanges, int** changepoints);
 
@@ -62,7 +65,7 @@ void updatewithobservation_mean(int ii, struct orderedobservationlist_mean *list
 
 void findoptimaloption_mean(int ii, struct orderedobservationlist_mean *list, int minseglength, double penaltyoutlier);
 
-int solveorderedobservationlist_mean(struct orderedobservationlist_mean *list, int n, double* penaltychange, double penaltyoutlier, int minseglength, int maxseglength);
+void solveorderedobservationlist_mean(struct orderedobservationlist_mean *list, int n, double* penaltychange, double penaltyoutlier, int minseglength, int maxseglength);
 
 void changepointreturn_mean(struct orderedobservationlist_mean *list, int n, int* numberofchanges, int** changepoints);
 
@@ -70,11 +73,38 @@ void changepointreturn_online_mean(struct orderedobservationlist_mean *list, int
 
 void pruner_mean(struct orderedobservationlist_mean *list, int ii, double penaltychange_max, int minseglength, int maxseglength);
 
-int solveorderedobservationlist_poisson(struct orderedobservationlist_mean *list, int n, double* penaltychange, double penaltyoutlier, int minseglength, int maxseglength);
+typedef struct orderedobservationlist_robustmean 
+{
+	int numberofobservation;
+	double observation;
+	double observationsquared;
+	Online_tukey *Tukey_Stuff;
 
-void updatewithobservation_poisson(int ii, struct orderedobservationlist_mean *list, double* penaltychange);
+	double optimalcostofprevious;
+	double segmentcost;
+	
+	double optimalcost;
+	struct orderedobservationlist_robustmean* optimalcut;
+	int option;
 
-void findoptimaloption_poisson(int ii, struct orderedobservationlist_mean *list, int minseglength, double penaltyoutlier);
+	int    destruction;
+  	struct orderedobservationlist_robustmean* next;
+  	struct orderedobservationlist_robustmean* previous;
+} orderedobservationlist_robustmean;
+
+void populateorderedobservationlist_robustmean(struct orderedobservationlist_robustmean **list, double* x , int n);
+
+void updatewithobservation_robustmean(int ii, struct orderedobservationlist_robustmean *list, double* penaltychange, const double threshold, const double threshold_squared);
+
+void findoptimaloption_robustmean(int ii, struct orderedobservationlist_robustmean *list, int minseglength, double penaltyoutlier);
+
+void solveorderedobservationlist_robustmean(struct orderedobservationlist_robustmean *list, int n, double* penaltychange, double penaltyoutlier, int minseglength, int maxseglength);
+
+void changepointreturn_robustmean(struct orderedobservationlist_robustmean *list, int n, int* numberofchanges, int** changepoints);
+
+void changepointreturn_online_robustmean(struct orderedobservationlist_robustmean *list, int n, int** changepoints);
+
+void pruner_robustmean(struct orderedobservationlist_robustmean *list, int ii, double penaltychange_max, int minseglength, int maxseglength);
 
 
 } // namespace anomaly
@@ -128,7 +158,7 @@ int cmpfunc_nosorting (const void * a, const void * b);
 
 int cmpfunc_sorting (const void * a, const void * b);
 
-int solveorderedobservationlist(struct orderedobservationlist *list, int n, int p, int l, double* penaltycomponent, double penaltyanomaly, int minseglength, int maxseglength);
+void solveorderedobservationlist(struct orderedobservationlist *list, int n, int p, int l, double* penaltycomponent, double penaltyanomaly, int minseglength, int maxseglength);
 
 void compute_cost_of_starting_anomalies(struct orderedobservationlist *list , int ii, int n, int p, int l, int minseglength, double *penaltycomponent, double *componentcost);
 
@@ -146,7 +176,7 @@ void changepointreturn(struct orderedobservationlist *list, int n, int p, int* n
 
 void pruner(struct orderedobservationlist *list, int ii, int p, int l, int minseglength, int maxseglength, double totalpenalty);
 
-void changepointreturn_online(struct orderedobservationlist *mylist, int n, int p, int *out);
+void changepointreturn_online(struct orderedobservationlist *mylist, int n, int p, std::vector<int> &out);
 
 
 

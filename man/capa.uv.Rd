@@ -17,12 +17,13 @@ capa.uv(
 \arguments{
 \item{x}{A numeric vector containing the data which is to be inspected.}
 
-\item{beta}{A numeric constant indicating the penalty for adding an additional epidemic changepoint. It defaults to a BIC style penalty if no argument is provided.}
+\item{beta}{A numeric vector of length 1 or \code{max_seg_len - min_seg_len + 1} indicating the penalty for adding additional collective anomalies of all possible
+lengths. If an argument of length 1 is provided the same penalty is used for all collective anomalies irrespective of their length. The default is a BIC style penalty.}
 
-\item{beta_tilde}{A numeric constant indicating the penalty for adding an additional point anomaly. It defaults to a BIC style penalty if no argument is provided.}
+\item{beta_tilde}{A numeric constant indicating the penalty for adding an additional point anomaly. It defaults to 3log(np), where n and p are the data dimensions.}
 
 \item{type}{A string indicating which type of deviations from the baseline are considered. Can be "meanvar" for collective anomalies characterised by joint changes in mean and
-variance (the default) or "mean" for collective anomalies characterised by changes in mean only.}
+variance (the default), "mean" for collective anomalies characterised by changes in mean only, or "robustmean" for collective anomalies characterised by changes in mean only which can be polluted by outliers.}
 
 \item{min_seg_len}{An integer indicating the minimum length of epidemic changes. It must be at least 2 and defaults to 10.}
 
@@ -33,7 +34,7 @@ in the data. Importantly, the untransformed data remains available for post proc
 the transform, (see \code{\link{robustscale}} and \code{\link{ac_corrected}}), but a user defined function can be specified. The default values is \code{transform=robust_scale}.}
 }
 \value{
-An S4 class of type capa.uv.class.
+An instance of an S4 class of type capa.uv.class.
 }
 \description{
 A technique for detecting anomalous segments and points in univariate time series data based on CAPA (Collective And Point Anomalies) by Fisch et al. (2018). CAPA assumes that the data has a certain mean and variance for most
@@ -54,6 +55,16 @@ inflated_penalty<-3*(1+psi)/(1-psi)*log(length(temperature))
 res<-capa.uv(temperature,type="mean",beta=inflated_penalty,
              beta_tilde=inflated_penalty)
 res
+plot(res)
+
+library(anomaly)
+data(Lightcurves)
+### Plot the data for Kepler 10965588: No transit apparent
+plot(Lightcurves$Kepler10965588$Day,Lightcurves$Kepler10965588$Brightness,xlab = "Day",pch=".")
+### Examine a period of 62.9 days for Kepler 10965588
+binned_data = period_average(Lightcurves$Kepler10965588,62.9)
+inferred_anomalies = capa.uv(binned_data)
+plot(inferred_anomalies)
 
 }
 \references{

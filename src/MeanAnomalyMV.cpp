@@ -8,6 +8,10 @@
 
 #include <vector>
 
+#include <string>
+#include "user_interupt.h"
+#include "capa.exception.h"
+
 using namespace anomalymv;
 
 std::vector<int> MeanAnomalyMV(SEXP Rx, SEXP Rn, SEXP Rp, SEXP Rl, SEXP Rminlength, SEXP Rbetachange, SEXP Rbetaanomaly, SEXP Rmaxlength, SEXP Ronline)
@@ -29,7 +33,7 @@ std::vector<int> MeanAnomalyMV(SEXP Rx, SEXP Rn, SEXP Rp, SEXP Rl, SEXP Rminleng
 	PROTECT(Rmaxlength) ;
 	PROTECT(Ronline) ;
 	
-  	int n = 0, p = 0, l = 0, minlength = 0, ii = 0, status = 0, maxlength = 0, online = 0;
+  	int n = 0, p = 0, l = 0, minlength = 0, ii = 0, error = 0, maxlength = 0, online = 0;
   	double betaanomaly = 0.0;
   	double* x = NULL;
   	double* betachange_DUMMY = NULL;
@@ -45,130 +49,139 @@ std::vector<int> MeanAnomalyMV(SEXP Rx, SEXP Rn, SEXP Rp, SEXP Rl, SEXP Rminleng
   	betachange_DUMMY = REAL(Rbetachange);
   	betaanomaly      = *REAL(Rbetaanomaly);
 
+	std::vector<int> vout;	
+	std::string reason;
+	int *out;
+	struct orderedobservationlist_mean* mylist;
 
-	betachange = (double*)calloc(p,sizeof(double));
+
+	try
+	{
+		betachange = new double[p];
+	}
+	catch(std::bad_alloc& e)
+	{
+		reason = "Not enough memory";
+		error = 1;
+		goto clearup;
+	}
 
   	for (ii = 0; ii < p; ii++)
   	{
   		betachange[ii] = betachange_DUMMY[ii];
   	}
 
-
-	struct orderedobservationlist_mean* mylist;
-
-	populate_mean(&mylist, x, n, p, l); 
-	
-	status = solveorderedobservationlist_mean(mylist, n, p, l, betachange, betaanomaly, minlength, maxlength);
-
-	if(status)
+	try
 	{
-
-		for (ii = 0; ii < n + l + 2; ii++)
-		{
-
-			if(mylist[ii].observation){free(mylist[ii].observation);}
-			if(mylist[ii].mean_of_xs){free(mylist[ii].mean_of_xs);}
-			if(mylist[ii].segmentcosts){free(mylist[ii].segmentcosts);}
-			if(mylist[ii].best_end_costs){free(mylist[ii].best_end_costs);}
-			if(mylist[ii].affectedcomponents){free(mylist[ii].affectedcomponents);}
-			if(mylist[ii].startlag){free(mylist[ii].startlag);}
-			if(mylist[ii].endlag){free(mylist[ii].endlag);}
-
-		}
-
-		if(betachange){free(betachange);}
-		if(mylist){free(mylist);}
-
-	  
-	  	UNPROTECT(9);
-
-	  	// return(R_NilValue) ; 
-		return std::vector<int>();
+		populate_mean(&mylist, x, n, p, l); 
+	}
+	catch(std::bad_alloc& e)
+	{
+		reason = "Not enough memory";
+		error = 1;
+		goto clearup;
 	}
 
-	SEXP Rout ;
-	std::vector<int> vout;	
+	try
+	{
+		solveorderedobservationlist_mean(mylist, n, p, l, betachange, betaanomaly, minlength, maxlength);
+	}
+	catch(user_interupt& a)
+	{
+		reason = "user interrupt";
+		error = 1;
+		goto clearup;
+	}	
 
 	if (online)
 	{
 
-		PROTECT(Rout = allocVector(INTSXP, n*(2 + 3*p)));
 		vout.resize(n*(2 + 3*p));
-		int *out;
-  		out  = INTEGER(Rout);
 		
-		changepointreturn_mean_online(mylist, n, p, out);
+		changepointreturn_mean_online(mylist, n, p, vout);
 		
-
 	} 
 	else
 	{
 
 		int numberofchanges = 0, *changes = NULL, *components = NULL, *startlag = NULL, *endlag = NULL;
-	
-		changepointreturn_mean(mylist, n, p, &numberofchanges, &changes, &components, &startlag, &endlag);
 		
-  		PROTECT(Rout = allocVector(INTSXP, numberofchanges*(3 + 3*p)));
+		try
+		{
+			changepointreturn_mean(mylist, n, p, &numberofchanges, &changes, &components, &startlag, &endlag);
+		}
+		catch(std::bad_alloc& e)
+		{
+			if(components){delete[] components;}
+			if(startlag){delete[] startlag;}
+			if(endlag){delete[] endlag;}
+			if(changes){delete[] changes;}
+			reason = "Not enough memory";
+			error = 1;
+			goto clearup;
+		}		
+
+
 		vout.resize(numberofchanges*(3 + 3*p));
-		
-		int *out;
-  		out  = INTEGER(Rout);
-  		
+	
 		for (ii = 0; ii < 3*numberofchanges; ii++)
 		{
-			out[ii] = changes[ii];
+			vout[ii] = changes[ii];
 		}
 
 		for (ii = 0; ii < numberofchanges*p; ii++)
 		{
-			out[ii + 3*numberofchanges] = components[ii];
+			vout[ii + 3*numberofchanges] = components[ii];
 		}
 
 		for (ii = 0; ii < numberofchanges*p; ii++)
 		{
-			out[ii + numberofchanges*(3 + p)] = startlag[ii];
+			vout[ii + numberofchanges*(3 + p)] = startlag[ii];
 		}
 
 		for (ii = 0; ii < numberofchanges*p; ii++)
 		{
-			out[ii + numberofchanges*(3 + 2*p)] = endlag[ii];
+			vout[ii + numberofchanges*(3 + 2*p)] = endlag[ii];
 		}
 
-		if(components){free(components);}
-		if(startlag){free(startlag);}
-		if(endlag){free(endlag);}
-		if(changes){free(changes);}
+		if(components){delete[] components;}
+		if(startlag){delete[] startlag;}
+		if(endlag){delete[] endlag;}
+		if(changes){delete[] changes;}
 
 	}
-	
-	for (ii = 0; ii < n + l + 2; ii++)
+
+clearup:	
+
+	if(mylist)
 	{
+		for (ii = 0; ii < n + l + 2; ii++)
+		{
 
-		if(mylist[ii].observation){free(mylist[ii].observation);}
-		if(mylist[ii].mean_of_xs){free(mylist[ii].mean_of_xs);}
-		if(mylist[ii].segmentcosts){free(mylist[ii].segmentcosts);}
-		if(mylist[ii].best_end_costs){free(mylist[ii].best_end_costs);}
-		if(mylist[ii].affectedcomponents){free(mylist[ii].affectedcomponents);}
-		if(mylist[ii].startlag){free(mylist[ii].startlag);}
-		if(mylist[ii].endlag){free(mylist[ii].endlag);}
+			if(mylist[ii].observation){ delete[] mylist[ii].observation;}
+			if(mylist[ii].mean_of_xs){ delete[] mylist[ii].mean_of_xs;}
+			if(mylist[ii].segmentcosts){ delete[] mylist[ii].segmentcosts;}
+			if(mylist[ii].best_end_costs){  delete[] mylist[ii].best_end_costs;}
+			if(mylist[ii].affectedcomponents){  delete[] mylist[ii].affectedcomponents;}
+			if(mylist[ii].startlag){ delete[] mylist[ii].startlag;}
+			if(mylist[ii].endlag){ delete[] mylist[ii].endlag;}
 
+		}
+
+		delete[] mylist;
 	}
 
-	int *out;
-	out  = INTEGER(Rout);
-	for(unsigned int cursor = 0; cursor < vout.size(); cursor++)
-	  {
-	    vout[cursor] = out[cursor];
-	  }
+	if(betachange){ delete[] betachange;}
 
+  	UNPROTECT(9);
+
+	if (error != 0)
+	{
+	  throw_capa_exception(reason);
+	}
 	
-	if(mylist){free(mylist);}
-	if(betachange){free(betachange);}
-
-  	UNPROTECT(10);
-
-  	// return(Rout) ;
-	return(vout);
+	return(vout) ;
+	
 }
 
 
