@@ -1,5 +1,5 @@
-fcf5915ea8dee7c10c38ec465c42b1c4 *DESCRIPTION
-632ac6767cba19808a2ae4c337a77aa7 *NAMESPACE
+84e07c0e0406d106fb4fc7fa97089c01 *DESCRIPTION
+8b094420a5022e3ccafdd0bf459a87c0 *NAMESPACE
 224724c2643ae7d46b2962bd92749ae4 *R/RcppExports.R
 8abdf3887a75a995de1c9edf8c6ef297 *R/ac_corrected.R
 b44a1ee37eb9199a0f4ef949bfe5be6a *R/bard.R
@@ -12,7 +12,7 @@ be921c763a50ed311dbca25d6bf92764 *R/period_average.R
 4c9c4974401845f92c1402f1e1a5fcb1 *R/simulate.R
 69e007defe97931470409dce183b0f7b *R/zzz.R
 72a8b45a6ad9274251f0984a4893e3e4 *README.md
-5f7bf419b74019a986bf9bf4bc855262 *build/partial.rdb
+a79e4d0189afefdc0f3c386aed9c68ac *build/partial.rdb
 97410af06d20ccd7adca2fe77707058d *data/Lightcurves.RData
 df07556c2d45eff5a3480c36b3c2eeef *data/datalist
 98588c4cd791fb1f7a7653db2854d8e9 *data/machinetemp.RData
@@ -74,9 +74,9 @@ c3d2b0456faeaba9631fc7090e1fa900 *src/find_best_option_mean.cpp
 f86e07f6662caf55a5508f581c2c27a7 *src/find_best_option_robustmean.cpp
 800b526857ffff2dffd1cb3fa75fdd9a *src/find_lowest_end_cost.cpp
 b2f48b28f2dbf2d7ddab215f85734d6e *src/marshalling.cpp
-4126b2137ddbede00b727b87c82722c7 *src/meanvarwithanomaly.cpp
-23086d470404d64578d04704b0720461 *src/meanvarwithanomaly_mean.cpp
-81e5da3bf08f40cc2416ead626c4774b *src/meanvarwithanomaly_robustmean.cpp
+b272797dee834d4c05e1669700654e0b *src/meanvarwithanomaly.cpp
+2b047fd84982857713916d705e1d1381 *src/meanvarwithanomaly_mean.cpp
+85e82f07227743dd8bc3ac7397f2b91e *src/meanvarwithanomaly_robustmean.cpp
 3525b004b0305c83beaea12aad1a966b *src/meanvarwithanomalysupport.cpp
 98deaca93d1104df182f472ff76ac868 *src/meanvarwithanomalysupport_mean.cpp
 219d022aebf53c2735f5d775a3961e72 *src/meanvarwithanomalysupport_robustmean.cpp
