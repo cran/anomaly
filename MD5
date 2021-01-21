@@ -1,4 +1,4 @@
-f8df1dcd0d7fabbaba1a4718f38de204 *DESCRIPTION
+07977e419233ed7edafcba29681fed8d *DESCRIPTION
 54c9aede552fb5637bc90a95b911fe87 *NAMESPACE
 224724c2643ae7d46b2962bd92749ae4 *R/RcppExports.R
 8abdf3887a75a995de1c9edf8c6ef297 *R/ac_corrected.R
@@ -16,12 +16,11 @@ befae49869e065549683c75d3b0e28dd *R/scapa.uv.R
 4c9c4974401845f92c1402f1e1a5fcb1 *R/simulate.R
 252aced672610681a887c7717dca1bbd *R/tierney.R
 72a8b45a6ad9274251f0984a4893e3e4 *README.md
-dfc861fd98f17e31319030fc4100712d *build/partial.rdb
+dbdfcd538c121dd164070af932834a45 *build/partial.rdb
 97410af06d20ccd7adca2fe77707058d *data/Lightcurves.RData
 df07556c2d45eff5a3480c36b3c2eeef *data/datalist
 98588c4cd791fb1f7a7653db2854d8e9 *data/machinetemp.RData
-4bb3d2cc3bd3dc7fd5ee0a812f1eb5d9 *inst/CITATION
-d803a93d89136b8e77b61a20d88c457f *inst/REFERENCES.bib
+a91e2a5dd3bd8b01431e93c458e631b2 *inst/REFERENCES.bib
 b359312761508acf6cb45b29bebb2e64 *man/ac_corrected.Rd
 c886b4fa684362ab9183a54b55c505c6 *man/bard.Rd
 5ae1e25d7dde9834e3e892b6483d2758 *man/capa.Rd
