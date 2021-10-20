@@ -7,7 +7,8 @@
 ac_corrected(X)
 }
 \arguments{
-\item{X}{A numeric matrix containing the potentially multivariate data to be transformed. Each column corresponds to a component and each row to an observation.}
+\item{X}{A numeric matrix containing the potentially multivariate data to be transformed. Each column corresponds to a component and each row to an observation.
+The time series data classes ts, xts, and zoo are also supported.}
 }
 \value{
 A numeric matrix of the same dimension as X containing the transformed data.

@@ -29,6 +29,8 @@ Kepler 10965588: 1 planet with orbital period of 62.89 days \cr
 More information about the exoplanets above and more data can be found at \cr https://exoplanetarchive.ipac.caltech.edu/index.html  
 
 This research has made use of the NASA Exoplanet Archive, which is operated by the California Institute of Technology, under contract with the National Aeronautics and
-Space Administration under the Exoplanet Exploration Program.
+Space Administration under the Exoplanet Exploration Program. Please include the following acknowledgement when using this data : ``This makes use of the NASA Exoplanet
+Archive, which is operated by the California Institute of Technology, under contract with the National Aeronautics and Space Administration under the Exoplanet Exploration
+Program".
 }
 \keyword{datasets}

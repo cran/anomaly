@@ -553,7 +553,7 @@ bard.sampler.class<-function(bard.result,gamma,num_draws,sampler.result,marginal
 #' Inference is conducted by solving a set of recursions. To reduce computational and storage costs a resampling 
 #' step is included.
 #' 
-#' @param x An n x p real matrix representing n observations of p variates.
+#' @param x An n x p real matrix representing n observations of p variates. The time series data classes ts, xts, and zoo are also supported.
 #' @param p_N Hyper-parameter of the negative binomial distribution for the length of non-anomalous segments (probability of success). Defaults to \deqn{\frac{1}{n+1}.}
 #' @param p_A Hyper-parameter of the negative binomial distribution for the length of anomalous segments (probability of success). Defaults to \deqn{\frac{5}{n}.}
 #' @param k_N Hyper-parameter of the negative binomial distribution for the length of non-anomalous segments (size). Defaults to 1.
@@ -601,7 +601,7 @@ bard.sampler.class<-function(bard.result,gamma,num_draws,sampler.result,marginal
 bard<-function(x, p_N = 1/(nrow(x)+1), p_A = 5/nrow(x), k_N = 1, k_A = (5*p_A)/(1-p_A), pi_N = 0.9, paffected = 0.05, lower = 2*sqrt(log(nrow(x))/nrow(x)), upper = max(transform(x)), alpha=1e-4, h=0.25, transform=robustscale)
 {
     # check the data
-    x <- as.array(as.matrix(x))
+    x<-to_array(x)
     if(!is_array(x))
     {
         stop("cannot convert data to an array")
@@ -881,7 +881,7 @@ sampler<-function(bard_result, gamma = 1/3, num_draws = 1000)
 #' 
 #' @rdname plot-methods
 #'
-#' @aliases plot,bard.sampler.class-method
+#' @aliases plot,bard.sampler.class,ANY-method
 #'
 #' @export
 setMethod("plot",signature=list("bard.sampler.class"),function(x,subset,variate_names,tile_plot,marginals=FALSE)

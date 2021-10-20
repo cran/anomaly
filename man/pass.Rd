@@ -14,7 +14,7 @@ pass(
 )
 }
 \arguments{
-\item{x}{An n x p real matrix representing n observations of p variates.}
+\item{x}{An n x p real matrix representing n observations of p variates. The time series data classes ts, xts, and zoo are also supported.}
 
 \item{alpha}{A positive integer > 0. This value is used to stabilise the higher criticism based test statistic used by PASS leading to a better finite sample familywise error rate. 
 Anomalies affecting fewer than alpha components will however in all likelihood escape detection.}

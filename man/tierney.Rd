@@ -7,7 +7,7 @@
 tierney(X, burnin = 10)
 }
 \arguments{
-\item{X}{A numeric matrix containing the data to be transformed.}
+\item{X}{A numeric matrix containing the data to be transformed. The time series data classes ts, xts, and zoo are also supported.}
 
 \item{burnin}{Specifies the period used to stabalise the quantile estimates. The default value is 10.}
 }

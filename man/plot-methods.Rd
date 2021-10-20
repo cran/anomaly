@@ -4,30 +4,30 @@
 \docType{methods}
 \name{plot-bard.sampler.class}
 \alias{plot-bard.sampler.class}
-\alias{plot,bard.sampler.class-method}
+\alias{plot,bard.sampler.class,ANY-method}
 \alias{plot}
-\alias{plot,capa.class-method}
-\alias{plot,capa.mv.class-method}
-\alias{plot,capa.uv.class-method}
+\alias{plot,capa.class,ANY-method}
+\alias{plot,capa.mv.class,ANY-method}
+\alias{plot,capa.uv.class,ANY-method}
 \alias{plot-pass.class}
-\alias{plot,pass.class-method}
-\alias{plot,scapa.mv.class-method}
-\alias{plot,scapa.uv.class-method}
+\alias{plot,pass.class,ANY-method}
+\alias{plot,scapa.mv.class,ANY-method}
+\alias{plot,scapa.uv.class,ANY-method}
 \title{Visualisation of data, collective and point anomalies.}
 \usage{
-\S4method{plot}{bard.sampler.class}(x, subset, variate_names, tile_plot, marginals = FALSE)
+\S4method{plot}{bard.sampler.class,ANY}(x, subset, variate_names, tile_plot, marginals = FALSE)
 
-\S4method{plot}{capa.class}(x, subset, variate_names = FALSE, tile_plot, epoch = nrow(x@data))
+\S4method{plot}{capa.class,ANY}(x, subset, variate_names = FALSE, tile_plot, epoch = nrow(x@data))
 
-\S4method{plot}{capa.mv.class}(x, subset, variate_names = FALSE, tile_plot)
+\S4method{plot}{capa.mv.class,ANY}(x, subset, variate_names = FALSE, tile_plot)
 
-\S4method{plot}{capa.uv.class}(x, variate_name = FALSE)
+\S4method{plot}{capa.uv.class,ANY}(x, variate_name = FALSE)
 
-\S4method{plot}{pass.class}(x, subset, variate_names = FALSE, tile_plot)
+\S4method{plot}{pass.class,ANY}(x, subset, variate_names = FALSE, tile_plot)
 
-\S4method{plot}{scapa.mv.class}(x, subset, variate_names = FALSE, tile_plot, epoch)
+\S4method{plot}{scapa.mv.class,ANY}(x, subset, variate_names = FALSE, tile_plot, epoch)
 
-\S4method{plot}{scapa.uv.class}(x, epoch, variate_name = FALSE)
+\S4method{plot}{scapa.uv.class,ANY}(x, epoch, variate_name = FALSE)
 }
 \arguments{
 \item{x}{An instance of an S4 class produced by \code{\link{capa}}, \code{\link{capa.uv}}, \code{\link{capa.mv}}, \code{\link{pass}}, or \code{\link{sampler}}.}

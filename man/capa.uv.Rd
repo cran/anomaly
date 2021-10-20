@@ -15,7 +15,7 @@ capa.uv(
 )
 }
 \arguments{
-\item{x}{A numeric vector containing the data which is to be inspected.}
+\item{x}{A numeric vector containing the data which is to be inspected. The time series data classes ts, xts, and zoo are also supported.}
 
 \item{beta}{A numeric vector of length 1 or \code{max_seg_len - min_seg_len + 1} indicating the penalty for adding additional collective anomalies of all possible
 lengths. If an argument of length 1 is provided the same penalty is used for all collective anomalies irrespective of their length. The default value is 4log(n), where n denotes the number of observations.}

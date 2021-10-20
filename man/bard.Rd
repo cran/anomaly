@@ -20,7 +20,7 @@ bard(
 )
 }
 \arguments{
-\item{x}{An n x p real matrix representing n observations of p variates.}
+\item{x}{An n x p real matrix representing n observations of p variates. The time series data classes ts, xts, and zoo are also supported.}
 
 \item{p_N}{Hyper-parameter of the negative binomial distribution for the length of non-anomalous segments (probability of success). Defaults to \deqn{\frac{1}{n+1}.}}
 

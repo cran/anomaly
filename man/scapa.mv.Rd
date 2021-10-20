@@ -16,7 +16,8 @@ scapa.mv(
 )
 }
 \arguments{
-\item{x}{A numeric matrix with n rows and p columns containing the data which is to be inspected.}
+\item{x}{A numeric matrix with n rows and p columns containing the data which is to be inspected.
+The time series data classes ts, xts, and zoo are also supported.}
 
 \item{beta}{A numeric vector of length p, giving the marginal penalties. If type ="meanvar" or if type = "mean" and maxlag > 0 it defaults to the penalty regime 2' described in 
 Fisch, Eckley and Fearnhead (2019). If type = "mean" and maxlag = 0 it defaults to the pointwise minimum of the penalty regimes 1, 2, and 3 in Fisch, Eckley and Fearnhead (2019).}
