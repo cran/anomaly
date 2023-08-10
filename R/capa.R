@@ -1,11 +1,11 @@
 .capa.class<-setClass("capa.class",representation(data="array",beta="array",beta_tilde="vector",min_seg_len="integer",max_seg_len="integer",max_lag="integer",type="character",
-                                                  transform="function",anomaly_types="vector",anomaly_positions="vector",components="array",start_lags="array",end_lags="array"))
+                                                  anomaly_types="vector",anomaly_positions="vector",components="array",start_lags="array",end_lags="array"))
 
 capa.class<-function(data,beta,beta_tilde,min_seg_len,max_seg_len,max_lag,type,
-                     transform,anomaly_types,anomaly_positions,components,start_lags,end_lags,...)
+                     anomaly_types,anomaly_positions,components,start_lags,end_lags,...)
 {
     .capa.class(data=data,beta=beta,beta_tilde=beta_tilde,min_seg_len=min_seg_len,max_seg_len=max_seg_len,max_lag=max_lag,type=type,
-                transform=transform,anomaly_types=anomaly_types,anomaly_positions=anomaly_positions,components=components,start_lags=start_lags,end_lags=end_lags,...)
+                anomaly_types=anomaly_types,anomaly_positions=anomaly_positions,components=components,start_lags=start_lags,end_lags=end_lags,...)
 }
 
 
@@ -80,39 +80,13 @@ summary_show_common<-function(object,epoch=nrow(object@data))
 }
 
 
-#' Point anomaly location and strength.
-#'
 #' @name point_anomalies
-#'
-#' @description Creates a data frame containing point anomaly locations and strengths as detected by \code{\link{capa}}, \code{\link{capa.uv}}, \code{\link{capa.mv}}, \code{\link{scapa.uv}}, and \code{\link{scapa.mv}}.
-#' 
-#'
-#' For an object produced by \code{\link{capa.uv}} or \code{\link{scapa.uv}}, the output is a data frame  with columns containing the position and
-#' strength of the anomaly. 
-#' 
-#' For an object produced by \code{\link{capa.mv}} or \code{\link{capa.mv}}, \code{point_anomalies} returns a data frame with columns containing the position, variate, and
-#' strength of the anomaly. 
-#'
-#' 
-#' For an object produced by \code{\link{capa}}, \code{point_anomalies} returns the same results as \code{\link{scapa.uv}} when the data is univariate, and the same results as
-#' \code{\link{scapa.mv}} when the data is multivariate.
-#'
-#' 
-#' @docType methods
-#'
-#' @rdname point_anomaly-methods
-#'
-#' @seealso \code{\link{capa}}, \code{\link{capa.uv}}, \code{\link{capa.mv}}.
-#'
-if(!isGeneric("point_anomalies")) {setGeneric("point_anomalies",function(object,...) {standardGeneric("point_anomalies")})}
-
-#' @name point_anomalies
-#' @param object An instance of an S4 class produced by \code{\link{capa}}, \code{\link{capa.uv}}, and \code{\link{capa.mv}}.
+#' @param object An instance of an S4 class produced by \code{\link{capa}}.
 #' @param epoch Positive integer. CAPA methods are sequential and as such, can generate results up to, and including, any epoch within the data series. This can be controlled by the value
 #' of \code{epoch} and is useful for examining how the inferred anomalies are modified as the data series grows. The default value for \code{epoch} is the length of the data series.
 #' 
 #' @return A data frame. 
-#'
+#' @include generics.R
 #' @rdname point_anomaly-methods
 #'
 #' @aliases point_anomalies,capa.class-method
@@ -132,11 +106,11 @@ setMethod("point_anomalies",signature=list("capa.class"),
               # get the anomalies
               anoms<-anomalies(object,epoch)
               # transform data
-              data_dash<-object@transform(object@data)
+              data_dash<-object@data
               p_anoms<-Map(function(x) x[1],Filter(function(x) x[1] == x[2],anoms))
               if(length(p_anoms) > 0)
               {
-                  p_anom_daf = Reduce(rbind,
+                  p_anom_daf <- Reduce(rbind,
                        Map(
                          function(p_anom)
                          {
@@ -153,16 +127,16 @@ setMethod("point_anomalies",signature=list("capa.class"),
                   )
               }
               
-              extra_anoms = data.frame("location"=integer(0),"variate"=integer(0),"strength"=integer(0))
+              extra_anoms <- data.frame("location"=integer(0),"variate"=integer(0),"strength"=integer(0))
               
               if (object@type == "robustmean"){
                 
-                tmp = collective_anomalies(as(object,"capa.class"))
+                tmp <- collective_anomalies(as(object,"capa.class"))
                 
                 if (nrow(tmp)>0)
                 {
                   
-                  extra_anoms = Reduce(rbind,
+                  extra_anoms <- Reduce(rbind,
                                       Map(
                                         function(ii)
                                         {
@@ -202,7 +176,7 @@ setMethod("point_anomalies",signature=list("capa.class"),
               }
               else
               {
-                  out = rbind(p_anom_daf,extra_anoms)
+                  out <- rbind(p_anom_daf,extra_anoms)
                   return(out[order(out$location,out$variate),])
               }
           }
@@ -234,49 +208,21 @@ merge_collective_anomalies<-function(object,epoch)
 
 
 
-#' Collective anomaly location, lags, and mean/variance changes.
-#'
-#' @name collective_anomalies
-#'
-#' @description Creates a data frame containing collective anomaly locations, lags and changes in mean and variance as detected by
-#' \code{\link{capa.uv}}, \code{\link{capa.mv}}, \code{\link{scapa.uv}}, \code{\link{scapa.mv}}, \code{\link{capa}}, \code{\link{pass}}, and \code{\link{sampler}}. 
-#'
-#' For an object produced by \code{\link{capa.uv}} or \code{\link{scapa.uv}}, \code{collective_anomalies} returns a data frame with columns containing the start and end position of the anomaly, the change in mean
-#' due to the anomaly. When \code{type="meanvar"}, the change in variance due to the anomaly is also returned in an additional column.
-#' 
-#'
-#' For an object produced by \code{\link{capa.mv}} or \code{\link{scapa.mv}}, \code{collective_anomalies} returns a data frame with columns containing the start and end position of the anomaly, the variates 
-#' affected by the anomaly, as well as their the start and end lags. When \code{type="mean"/"robustmean"} only the change in mean is reported. When \code{type="meanvar"} both the change in mean and
-#' change in variance are included. If \code{merged=FALSE} (the default), then all the collective anomalies are processed individually even if they are common across multiple variates.
-#' If \code{merged=TRUE}, then the collective anomalies are grouped together across all variates that they appear in.
-#'
-#'
-#' For an object produced by \code{\link{capa}}, \code{collective_anomalies} returns the same results as \code{\link{scapa.uv}} when the data is univariate, or the same results as
-#' \code{\link{scapa.mv}} when the data is multivariate.
-#'
-#' For an object produced by \code{\link{pass}} or \code{sampler} returns a data frame containing the start, end and strength of the collective anomalies.
-#'
-#' 
-#' @docType methods
-#'
-#' @rdname collective_anomalies-methods
-#'
-if(!isGeneric("collective_anomalies")) {setGeneric("collective_anomalies",function(object,...) {standardGeneric("collective_anomalies")})}
 
 #' @name collective_anomalies
-#' @param object An instance of an S4 class produced by \code{\link{capa}}, \code{\link{capa.uv}} and \code{\link{capa.mv}}.
+#' @param object An instance of an S4 class produced by \code{\link{capa}}.
 #' @param epoch Positive integer. CAPA methods are sequential and as such, can generate results up to, and including, any epoch within the data series. This can be controlled by the value
 #' of \code{epoch} and is useful for examining how the inferred anomalies are modified as the data series grows. The default value for \code{epoch} is the length of the data series.
 #' @param merged Boolean value. If \code{merged=TRUE} then collective anomalies that are common across multiple variates are merged together. This is useful when comparing the relative strength
 #' of multivariate collective anomalies. Default value is \code{merged=FALSE}. Note - \code{merged=TRUE} is currently only available when \code{type="mean"}.  
 #' 
 #' @return A data frame.
-#' 
+#' @include generics.R
 #' @rdname collective_anomalies-methods
 #'
 #' @aliases collective_anomalies,capa.class-method
 #' 
-#' @seealso \code{\link{capa}},\code{\link{capa.uv}},\code{\link{capa.mv}}. 
+#' @seealso \code{\link{capa}},\code{\link{pass}},\code{\link{sampler}}. 
 #'
 #' @export
 setMethod("collective_anomalies",signature=list("capa.class"),
@@ -297,7 +243,7 @@ setMethod("collective_anomalies",signature=list("capa.class"),
               # get the anomalies
               anoms<-anomalies(object,epoch)
               # transform data
-              data_dash<-object@transform(object@data)
+              data_dash<-object@data
               c_anoms<-Filter(function(x) x[1] != x[2],anoms)
               if(length(c_anoms) == 0)
               {                      
@@ -393,21 +339,14 @@ setMethod("collective_anomalies",signature=list("capa.class"),
 #'
 #' @name summary
 #'
-#' @description Summary methods for S4 objects returned by \code{\link{capa}}, \code{\link{capa.uv}}, \code{\link{capa.mv}},
+#' @description Summary methods for S4 objects returned by \code{\link{capa}}, 
 #' \code{\link{pass}}, and \code{\link{sampler}}.  The output displayed
 #' depends on the type of object passed to summary. For all types, the output indicates whether the data is univariate or
 #' multivariate, the number of observations in the data, and the type of change being detected.
 #'
-#'
-#' For an object produced by \code{\link{capa.uv}} or \code{\link{capa.mv}}, \code{\link{pass}}, or \code{\link{sampler}},  \code{summary}
-#' displays a summary of the analysis.
-#' 
-#' For an object produced by \code{\link{capa}} is the same as for an object produced by \code{\link{capa.uv}}
-#' or \code{\link{capa.mv}}. 
-#'
 #' @docType methods
 #'
-#' @param object An instance of an S4 class produced by \code{\link{capa}}, \code{\link{capa.uv}}, \code{\link{capa.mv}}, or \code{\link{pass}}.
+#' @param object An instance of an S4 class produced by \code{\link{capa}} or \code{\link{pass}}.
 #' @param epoch Positive integer. CAPA methods are sequential and as such, can generate results up to, and including, any epoch within the data series. This can be controlled by the value
 #' of \code{epoch} and is useful for examining how the inferred anomalies are modified as the data series grows. The default value for \code{epoch} is the length of the data series.
 #' @param ... Ignored.
@@ -416,7 +355,7 @@ setMethod("collective_anomalies",signature=list("capa.class"),
 #'
 #' @aliases summary,capa.class-method
 #' 
-#' @seealso \code{\link{capa}},\code{\link{capa.uv}},\code{\link{capa.mv}},\code{\link{pass}},\code{\link{sampler}}. 
+#' @seealso \code{\link{capa}}, \code{\link{pass}},\code{\link{sampler}}. 
 #'
 #' @export
 setMethod("summary",signature=list("capa.class"),function(object,epoch=nrow(object@data))
@@ -445,19 +384,19 @@ setMethod("summary",signature=list("capa.class"),function(object,epoch=nrow(obje
 #'
 #' @name show
 #'
-#' @description Displays S4 object produced by \code{\link{capa}}, \code{\link{capa.uv}}, \code{\link{capa.mv}}, \code{\link{pass}}, \code{\link{bard}}, and \code{\link{sampler}}.
+#' @description Displays S4 object produced by \code{\link{capa}}, \code{\link{pass}}, \code{\link{bard}}, and \code{\link{sampler}}.
 #' The output displayed depends on the type of S4 object passed to the method. For all types, the output indicates whether the data is univariate or
 #' multivariate, the number of observations in the data, and the type of change being detected.
 #'
 #' @docType methods
 #'
-#' @param object An instance of an S4 class produced by \code{\link{capa}}, \code{\link{capa.uv}}, \code{\link{capa.mv}}, \code{\link{pass}}, \code{\link{bard}}, or \code{\link{sampler}}.
+#' @param object An instance of an S4 class produced by \code{\link{capa}}, \code{\link{pass}}, \code{\link{bard}}, or \code{\link{sampler}}.
 #'
 #' @rdname show-methods
 #'
 #' @aliases show,capa.class-method
 #' 
-#' @seealso \code{\link{capa}},\code{\link{capa.uv}},\code{\link{capa.mv}},\code{\link{pass}},\code{\link{bard}},\code{\link{sampler}}. 
+#' @seealso \code{\link{capa}},\code{\link{pass}},\code{\link{bard}},\code{\link{sampler}}. 
 #'
 #' @export
 setMethod("show",signature=list("capa.class"),function(object)
@@ -512,56 +451,56 @@ anomalies<-function(x,epoch=NULL)
 capa.mv_call<-function(x,beta=NULL,beta_tilde=NULL,type="meanvar",min_seg_len=10,max_seg_len=Inf,max_lag=0)
 {
     # configure defaults as required
-    marshaller = marshall_MeanVarAnomalyMV
+    marshaller <- marshall_MeanVarAnomalyMV
     if(type == "mean")
     {
-        marshaller = marshall_MeanAnomalyMV
+        marshaller <- marshall_MeanAnomalyMV
     }
     if(type == "robustmean")
     {
-        marshaller = marshall_RobustMeanAnomalyMV
+        marshaller <- marshall_RobustMeanAnomalyMV
     }
     # process beta
-    n = nrow(x)
-    p = ncol(x)
-    s = 1.5*log(n)
+    n <- nrow(x)
+    p <- ncol(x)
+    s <- 1.5*log(n)
     if (is.null(beta))
     {            
         if(type %in% c("mean","robustmean"))
         {
             if (max_lag == 0)
             {
-                to_be_tried = 1:p
-                a_vector = qchisq(seq(p-1,0)/p, 1)
+                to_be_tried <- 1:p
+                a_vector <- qchisq(seq(p-1,0)/p, 1)
         
-                penalty_1 = 2*s + 2*to_be_tried*log(p)
-                penalty_2 = rep(p + 2*s + 2*sqrt(p*s),p)
+                penalty_1 <- 2*s + 2*to_be_tried*log(p)
+                penalty_2 <- rep(p + 2*s + 2*sqrt(p*s),p)
         
-                penalty_3    = 2*(s+log(p)) + 1:p + 2*p*a_vector*dchisq(a_vector, 1) + 2*sqrt((1:p+2*p*a_vector*dchisq(a_vector, 1))*(s+log(p)))
-                penalty_3[p] = 2*(s+log(p)) + p + 2*sqrt(p*(s+log(p)))
+                penalty_3    <- 2*(s+log(p)) + 1:p + 2*p*a_vector*dchisq(a_vector, 1) + 2*sqrt((1:p+2*p*a_vector*dchisq(a_vector, 1))*(s+log(p)))
+                penalty_3[p] <- 2*(s+log(p)) + p + 2*sqrt(p*(s+log(p)))
         
-                beta = diff( c(0,pmin(penalty_1,penalty_2,penalty_3)))   
+                beta <- diff( c(0,pmin(penalty_1,penalty_2,penalty_3)))   
             }
       
             if (max_lag > 0)
             {
-                beta = rep(2*log(p*(max_lag+1)),p)
-                beta[1] = beta[1] + 2*s
+                beta <- rep(2*log(p*(max_lag+1)),p)
+                beta[1] <- beta[1] + 2*s
             }
         }
         if(type == "meanvar")
         {
-            beta = rep(4*log(p*(max_lag+1)),p)
-            beta[1] = beta[1] + 4*s         
+            beta <- rep(4*log(p*(max_lag+1)),p)
+            beta[1] <- beta[1] + 4*s         
         }
     }
     else if(length(beta) == 1)
     {
-        beta = rep(beta,p)
+        beta <- rep(beta,p)
     }
     if(is.null(beta_tilde))
     {
-        beta_tilde = 3*log(length(x))
+        beta_tilde <- 3*log(length(x))
     }
     
     # call the underlying method
@@ -575,8 +514,8 @@ capa.mv_call<-function(x,beta=NULL,beta_tilde=NULL,type="meanvar",min_seg_len=10
                   as.integer(max_seg_len),
                   as.integer(1))
     # construct the S4 capa class instance
-    S = matrix(S,nrow(x),byrow=T)
-    p = ncol(x)
+    S <- matrix(S,nrow(x),byrow=T)
+    p <- ncol(x)
     return(
         capa.class(x,
                    array(beta,c(length(beta),1)),
@@ -585,7 +524,6 @@ capa.mv_call<-function(x,beta=NULL,beta_tilde=NULL,type="meanvar",min_seg_len=10
                    as.integer(max_seg_len),
                    integer(max_lag),
                    type,
-                   function() return(),
                    S[,1], 
                    S[,2],
                    matrix(S[,2 + 0*p + 1:p],ncol=p),
@@ -594,25 +532,98 @@ capa.mv_call<-function(x,beta=NULL,beta_tilde=NULL,type="meanvar",min_seg_len=10
         )
 }
 
+
+# not exported - helper function for capa function
+capa.uv_call<-function(x,beta=NULL,beta_tilde=NULL,type="meanvar",min_seg_len=10,max_seg_len=Inf)
+{
+    # configure defaults as required
+    marshaller <- marshall_MeanVarAnomaly
+    if(type == "mean")
+    {
+        marshaller <- marshall_MeanAnomaly
+    }
+    else if(type == "robustmean")
+    {
+      marshaller <- marshall_RobustMeanAnomaly
+    }
+    if(is.null(beta))
+    {
+        if(type %in% c("mean","robustmean"))
+        {
+	    beta <- 3*log(length(x))
+        }
+        else 
+        {
+	    beta <- 4*log(length(x))
+        }
+    }
+    if(length(beta) > 1 & length(beta) != (max_seg_len - min_seg_len + 1))
+    {
+        warning("beta has a number of entries larger than 1 but not equal to max_seg_len - min_seg_len + 1. Only the first one is kept.")
+        beta <- beta[1]
+    }
+    if(length(beta) == 1)
+    {
+        beta <- rep(beta,max_seg_len - min_seg_len + 1)
+    }
+    if(is.null(beta_tilde))
+    {
+	beta_tilde <- 3*log(length(x))
+    }
+    S<-marshaller(x,
+                  as.integer(length(x)),
+                  as.integer(min_seg_len),
+                  as.integer(max_seg_len),
+                  beta,
+                  beta_tilde,
+                  as.integer(1))
+		     blob<-list(x,
+               as.integer(length(x)),
+               as.integer(min_seg_len),
+               as.integer(max_seg_len),
+               beta,
+               beta_tilde,
+               as.integer(1),
+	       S)	       
+    # construct the S4 capa class instance
+    return(
+	capa.class(array(x,c(length(x),1)), 
+		     array(beta,c(length(beta),1)),
+                     array(beta_tilde,c(1,1)),
+                     as.integer(min_seg_len),
+                     as.integer(max_seg_len),
+                     integer(),
+                     type,
+                     S[seq(1,length(S),2)],
+                     S[seq(2,length(S),2)],
+                     array(1,c(length(x),1)), 
+                     array(0,c(length(x),1)), 
+                     array(0,c(length(x),1))) 
+        )
+}
+
+
 #' A technique for detecting anomalous segments and points based on CAPA.
 #'
 #' @name capa 
 #'
-#' @description A technique for detecting anomalous segments and points based on CAPA (Collective And Point Anomalies) by Fisch et al. (2018). This is a generic method that can be used for both univariate
-#' and multivariate data. The specific method that is used for the analysis is deduced by \code{capa} from the dimensions of the data.
+#' @description A technique for detecting anomalous segments and points based on CAPA (Collective And Point Anomalies) by Fisch et al. (2022).
+#' This is a generic method that can be used for both univariate and multivariate data. The specific method that is used for the analysis is deduced by \code{capa} from the dimensions of the data.
+#' The inputted data is either a vector (in the case of a univariate time-series) or a array with p columns (if the the time-series is p-dimensional). The CAPA procedure assumes that each component
+#' of the time-series is standardised so that the non-anomalous segments of each component have mean 0 and variance 1. This may require pre-processing/standardising.
+#' For example, using the median of each component as a robust estimate of its mean, and the mad (median absolute deviation from the median) estimator to get a robust estimate of the variance.
 #' 
 #' @param x A numeric matrix with n rows and p columns containing the data which is to be inspected. The time series data classes ts, xts, and zoo are also supported.  
-#' @param beta A numeric vector of length p, giving the marginal penalties. If p > 1, type ="meanvar" or type = "mean" and max_lag > 0 it defaults to the penalty regime 2' described in 
-#' Fisch, Eckley and Fearnhead (2019). If p > 1, type = "mean"/"meanvar" and max_lag = 0 it defaults to the pointwise minimum of the penalty regimes 1, 2, and 3 in Fisch, Eckley and Fearnhead (2019).
-#' @param beta_tilde A numeric constant indicating the penalty for adding an additional point anomaly. It defaults to 3log(np), where n and p are the data dimensions.
+#' @param beta A numeric vector of length p giving the marginal penalties. If beta is missing and p == 1 then beta = 3log(n) when the type is "mean" or "robustmean", and beta = 4log(n) otherwise.
+#' If beta is missing and p > 1, type ="meanvar" or type = "mean" and max_lag > 0 then it defaults to the penalty
+#' regime 2' described in Fisch, Eckley and Fearnhead (2022). If beta is missing and p > 1, type = "mean"/"meanvar" and max_lag = 0 it defaults to the pointwise minimum of the penalty regimes
+#' 1, 2, and 3 in Fisch, Eckley and Fearnhead (2022).
+#' @param beta_tilde A numeric constant indicating the penalty for adding an additional point anomaly. If beta_tilda is missing it defaults to 3log(np), where n and p are the data dimensions.
 #' @param type A string indicating which type of deviations from the baseline are considered. Can be "meanvar" for collective anomalies characterised by joint changes in mean and
-#' variance (the default), "mean" for collective anomalies characterised by changes in mean only, or "robustmean" for collective anomalies characterised by changes in mean only which can be polluted by outliers.
+#' variance (the default), "mean" for collective anomalies characterised by changes in mean only, or "robustmean" (only allowed when p = 1) for collective anomalies characterised by changes in mean only which can be polluted by outliers.
 #' @param min_seg_len An integer indicating the minimum length of epidemic changes. It must be at least 2 and defaults to 10.
 #' @param max_seg_len An integer indicating the maximum length of epidemic changes. It must be at least min_seg_len and defaults to Inf.
 #' @param max_lag A non-negative integer indicating the maximum start or end lag. Only useful for multivariate data. Default value is 0.
-#' @param transform A function used to centre the data prior to analysis by \code{\link{capa}}. This can, for example, be used to compensate for the effects of autocorrelation in the data.
-#' Importantly, the untransformed data remains available for post processing results obtained using \code{\link{capa}}. The package includes several methods that are commonly used for
-#' the transform, (see \code{\link{robustscale}} and \code{\link{ac_corrected}}), but a user defined function can be specified. The default values is \code{transform=robust_scale}. 
 #' 
 #' @return An instance of an S4 class of type capa.class. 
 #'
@@ -622,18 +633,25 @@ capa.mv_call<-function(x,beta=NULL,beta_tilde=NULL,type="meanvar",min_seg_len=10
 #' @examples
 #' library(anomaly)
 #' # generate some multivariate data
-#' set.seed(0)
-#' sim.data<-simulate(n=500,p=100,mu=2,locations=c(100,200,300),
-#'                    duration=6,proportions=c(0.04,0.06,0.08))
+#' data(simulated)
 #' res<-capa(sim.data,type="mean",min_seg_len=2,max_lag=5)
 #' collective_anomalies(res)
 #' plot(res)
 #' 
 #' @export
 #'
-capa<-function(x,beta=NULL,beta_tilde=NULL,type="meanvar",min_seg_len=10,max_seg_len=Inf,max_lag=0,transform=robustscale)
+capa<-function(x,beta,beta_tilde,type="meanvar",min_seg_len=10,max_seg_len=Inf,max_lag=0)
 {
-    # make sure the callable transform object is of type function
+    # process missing values
+    if(missing(beta))
+    {
+       beta <- NULL
+    }
+    if(missing(beta_tilde))
+    {
+       beta_tilde <- NULL
+    }    
+
     # data needs to be in the form of an array
     x<-to_array(x)
     if(!is_array(x))
@@ -665,37 +683,9 @@ capa<-function(x,beta=NULL,beta_tilde=NULL,type="meanvar",min_seg_len=10,max_seg
     {
         x<-t(x)
     }
-    # try transforming the data
-    if(!is_function(transform))
-    {
-        stop("transform must be a function")
-    }
-    x_untransformed<-x
-    x<-transform(x)
-    # and check the transformed data
-    if(!is_array(x))
-    {
-        stop("cannot convert the transformed x to an array - check the transform function")
-    }
-    if(!all(is_not_na(x)))
-    {
-        stop("the transformed x contains NA values - check the transform function")
-    }
-    if(!all(is_not_null(x)))
-    {
-        stop("the transformed x contains NULL values - check the transform function")
-    }
-    if(!is_numeric(x))
-    {
-        stop("the transformed x must be of type numeric - check the transform function")
-    }
-    if(length(dim(x)) != 2)
-    {
-        stop("cannot convert transformed x to a two dimensional array - check the transform function")
-    }
 
     # check the type 
-    types=list("mean","robustmean","meanvar")
+    types <- list("mean","robustmean","meanvar")
     if(!(type %in% types))
     {
         stop("type has to be one of mean, robustmean, or meanvar")
@@ -799,23 +789,19 @@ capa<-function(x,beta=NULL,beta_tilde=NULL,type="meanvar",min_seg_len=10,max_seg
                 stop("beta_tilde values must be >= 0")
         }
     }
-    # wrap the callable transform object in a function to store in S4 class
-    transform_method<-function(arg){return(transform(arg))}
     # call appropriate helper function
     tryCatch(
     {
         if(univariate)
         {
             res<-capa.uv_call(x,beta,beta_tilde,type,min_seg_len,max_seg_len)
-            res@data<-x_untransformed
-            res@transform<-transform_method
+            res@data<-x
             return(res)
         }
         else
         {
             res<-capa.mv_call(x,beta,beta_tilde,type,min_seg_len,max_seg_len,max_lag)
-            res@data<-x_untransformed
-            res@transform<-transform_method
+            res@data<-x
             return(res)
         }
     },error = function(e) {print(e$message);stop();})
@@ -826,7 +812,7 @@ capa<-function(x,beta=NULL,beta_tilde=NULL,type="meanvar",min_seg_len=10,max_seg
 capa_line_plot<-function(object,epoch=dim(object@data)[1],subset=1:ncol(object@data),variate_names=FALSE)
 {
     # creating null entries for ggplot global variables so as to pass CRAN checks
-    x<-value<-ymin<-ymax<-x1<-x2<-y1<-y2<-x1<-x2<-y1<-y2<-NULL
+    x<-variable<-value<-ymin<-ymax<-x1<-x2<-y1<-y2<-x1<-x2<-y1<-y2<-NULL
     data_df<-as.data.frame(object@data)
     names<-paste("y",1:ncol(object@data),sep="")
     colnames(data_df)<-names
@@ -834,7 +820,7 @@ capa_line_plot<-function(object,epoch=dim(object@data)[1],subset=1:ncol(object@d
     n<-nrow(data_df)
     p<-ncol(data_df)
     data_df<-cbind(data.frame("x"=1:n),data_df)
-    data_df<-melt(data_df,id="x")
+    data_df<-gather(data_df,variable,value,-x)    
     out<-ggplot(data=data_df)
     out<-out+aes(x=x,y=value)
     out<-out+geom_point(alpha=0.3)
@@ -860,7 +846,7 @@ capa_line_plot<-function(object,epoch=dim(object@data)[1],subset=1:ncol(object@d
     if(!any(is.na(p_anoms)) & nrow(p_anoms) > 0)
         {
             p_anoms_data_df<-Reduce(rbind,Map(function(a,b) data_df[data_df$variable==names[a] & data_df$x==b,],p_anoms$variate,p_anoms$location))
-            out<-out+geom_point(data=p_anoms_data_df,colour="red", size=1.5,alpha=0.3)
+            out<-out+geom_point(data=p_anoms_data_df,colour="red", size=1.5,alpha=0.8)
         }
     out<-out+facet_grid(factor(variable,levels=(names)) ~ .,scales="free_y")
     # grey out the data after epoch
@@ -892,7 +878,7 @@ capa_tile_plot<-function(object,variate_names=FALSE,epoch=dim(object@data)[1],su
         df[,i]<-(df[,i]-min(df[,i]))/(max(df[,i])-min(df[,i]))
     }
     t<-data.frame("t"=seq(1,nrow(df)))
-    molten.data<-melt(cbind(t,df),id="t")
+    molten.data<-gather(cbind(t,df),variable,value,-t)
     out<-ggplot(molten.data, aes(t,variable))
     out<-out+geom_tile(aes(fill=value))
     # get any collective anomalies
@@ -923,16 +909,14 @@ capa_tile_plot<-function(object,variate_names=FALSE,epoch=dim(object@data)[1],su
 
 #' Visualisation of data, collective and point anomalies.
 #'
-#' @name plot
-#'
-#' @description Plot methods for S4 objects returned by \code{\link{capa}}, \code{\link{capa.uv}}, \code{\link{capa.mv}}, \code{\link{scapa.uv}}, \code{\link{scapa.mv}}, \code{\link{pass}}, and \code{\link{sampler}}. 
+#' @description Plot methods for S4 objects returned by \code{\link{capa}}, \code{\link{pass}}, and \code{\link{sampler}}. 
 #'
 #' The plot can either be a line plot or a tile plot, the type produced depending on the options provided to the \code{plot} function and/or the dimensions of the
 #' data associated with the S4 object.
 #'
 #' @docType methods
 #'
-#' @param x An instance of an S4 class produced by \code{\link{capa}}, \code{\link{capa.uv}}, \code{\link{capa.mv}}, \code{\link{pass}}, or \code{\link{sampler}}. 
+#' @param x An instance of an S4 class produced by \code{\link{capa}}, \code{\link{pass}}, or \code{\link{sampler}}. 
 #' @param subset A numeric vector specifying a subset of the variates to be displayed. Default value is all of the variates present in the data.
 #' @param variate_names Logical value indicating if variate names should be displayed on the plot. This is useful when a large number of variates are being displayed
 #' as it makes the visualisation easier to interpret. Default value is FALSE.
@@ -945,9 +929,9 @@ capa_tile_plot<-function(object,variate_names=FALSE,epoch=dim(object@data)[1],su
 #'
 #' @rdname plot-methods
 #'
-#' @aliases plot,capa.class,ANY-method
+#' @aliases plot,capa.class
 #' 
-#' @seealso \code{\link{capa}},\code{\link{capa.uv}},\code{\link{capa.mv}},\code{\link{pass}},\code{\link{sampler}}.
+#' @seealso \code{\link{capa}},\code{\link{pass}},\code{\link{sampler}}.
 #'
 #' @export 
 setMethod("plot",signature=list("capa.class"),function(x,subset,variate_names=FALSE,tile_plot,epoch=nrow(x@data))

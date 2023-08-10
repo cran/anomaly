@@ -9,14 +9,15 @@ pass.class<-function(data,results,Lmax,Lmin,alpha,lambda)
 pass.line.plot<-function(x,subset=1:ncol(x@data),variate_names=FALSE)
 {
     # nulling out variables used in ggplot to get the package past CRAN checks
-    k<-value<-NULL
+    k<-variable<-value<-NULL
     X<-as.data.frame(x@data[,subset])
     names<-paste("y",1:ncol(X),sep="")
     colnames(X)<-names
     # add in index variable for the time axis
     X<-cbind("k"=1:nrow(X),X)
     # melt the data
-    molten.X<-melt(X,id="k")
+    molten.X<-gather(X,variable,value,-k)
+    
     # generate multiple line plots ...
     p<-ggplot(data=molten.X)
     p<-p+aes(x=k,y=value)
@@ -50,7 +51,7 @@ pass.tile.plot<-function(x,subset=1:ncol(x@data),variate_names=FALSE)
         df[,i]<-(df[,i]-min(df[,i]))/(max(df[,i])-min(df[,i]))
     }
     n<-data.frame("n"=seq(1,nrow(df)))
-    molten.data<-melt(cbind(n,df),id="n")
+    molten.data<-gather(cbind(n,df),variable,value,-n)
     p<-ggplot(molten.data, aes(n,variable))
     p<-p+geom_tile(aes(fill=value))
     ymin<-0
@@ -68,13 +69,10 @@ pass.tile.plot<-function(x,subset=1:ncol(x@data),variate_names=FALSE)
     return(p)
 }
 
-#' @name plot-pass.class
-#'
-#' @docType methods
 #'
 #' @rdname plot-methods
 #'
-#' @aliases plot,pass.class,ANY-method
+#' @aliases plot,pass.class
 #'
 #' @export
 setMethod("plot",signature=list("pass.class"),function(x,subset,variate_names=FALSE,tile_plot)
@@ -119,7 +117,7 @@ setMethod("plot",signature=list("pass.class"),function(x,subset,variate_names=FA
 
 #' @name summary
 #'
-#' @docType methods
+# #' @docType methods
 #' 
 #' @rdname summary-methods
 #'
@@ -142,7 +140,7 @@ setMethod("summary",signature=list("pass.class"),function(object,...)
 
 #' @name show
 #'
-#' @docType methods
+# #' @docType methods
 #'
 #' @aliases show,pass.class-method
 #'
@@ -162,14 +160,12 @@ setMethod("show",signature=list("pass.class"),function(object)
 
 #' @name collective_anomalies
 #'
-#' @docType methods
-#'
+# #' @docType methods
+#' @include generics.R
 #' @rdname collective_anomalies-methods
 #'
 #' @aliases collective_anomalies,pass.class-method
 #'
-#' 
-#' 
 #' @export
 setMethod("collective_anomalies",signature=list("pass.class"),function(object)
 {

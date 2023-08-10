@@ -18,12 +18,12 @@ draw.from.post <- function(logprobs, cpt.locs, types, params){
   STATES <- curr.state
   DRAW <- t
 
-  k_N = params[1]
-  p_N = params[2]
-  k_A = params[3]
-  p_A = params[4]
-  pi_N = params[5]
-  pi_A = 1 - pi_N
+  k_N <- params[1]
+  p_N <- params[2]
+  k_A <- params[3]
+  p_A <- params[4]
+  pi_N <- params[5]
+  pi_A <- 1 - pi_N
 
   while (t > 1){
 
@@ -113,12 +113,12 @@ Rsampler <- function(res, gamma = 1/3, no.draws=1000){
   params <- res$params
   
   # sampler params
-  mu_seq = res$sampler_params$mu_seq
-  N = res$sampler_params$N
-  S = res$sampler_params$S
-  p = res$sampler_params$p
+  mu_seq <- res$sampler_params$mu_seq
+  N <- res$sampler_params$N
+  S <- res$sampler_params$S
+  p <- res$sampler_params$p
   
-  n = length(logprobs)
+  n <- length(logprobs)
   prob.states <- matrix(nrow=no.draws, ncol=n)
   # for the heatmap  
   sampled.res = list()
@@ -142,26 +142,26 @@ Rsampler <- function(res, gamma = 1/3, no.draws=1000){
     
   }
   
-  margprob = apply(prob.states,2,sum)/no.draws
-  segmentation = loss(gamma, margprob)
+  margprob <- apply(prob.states,2,sum)/no.draws
+  segmentation <- loss(gamma, margprob)
   
-  welem = which(segmentation == 1)
+  welem <- which(segmentation == 1)
   if (length(welem) > 0){
     
     # put into data frame
-    df = data.frame("start"=NA, "end"=NA, "LogMargLike"=NA)
-    wdiff = c(0, which(diff(welem) != 1), length(welem))
+    df <- data.frame("start"=NA, "end"=NA, "LogMargLike"=NA)
+    wdiff <- c(0, which(diff(welem) != 1), length(welem))
     for (i in 1:(length(wdiff)-1) ){
-      start = welem[(wdiff[i] + 1)]
-      end = welem[wdiff[(i+1)]]
-      ml = P.A(start, end, mu_seq, N, S, p)
-      tempdf = data.frame("start"=start,
+      start <- welem[(wdiff[i] + 1)]
+      end <- welem[wdiff[(i+1)]]
+      ml <- P.A(start, end, mu_seq, N, S, p)
+      tempdf <- data.frame("start"=start,
                           "end"=end,
                           "LogMargLike"=ml)
-      df = rbind(df, tempdf)
+      df <- rbind(df, tempdf)
     }
-    df = df[-1,]
-    df = df[order(df$LogMargLike, decreasing = T), ]
+    df <- df[-1,]
+    df <- df[order(df$LogMargLike, decreasing = T), ]
     return(list(df,margprob,sampled.res))
     
   }
@@ -198,11 +198,11 @@ resample <- function(to.resample,alpha){
     if ( log.u < to.resample[k] ){
       # u <- u + alpha - w
       # first find log(alpha-w) label as log.alpha.weight
-      temp = c( log.alpha ,  to.resample[k] )
-      c = max(temp)
+      temp <- c( log.alpha ,  to.resample[k] )
+      c <- max(temp)
       log.alpha.weight <- c + log( exp( temp[1] - c ) - exp( temp[2] - c )  )
-      temp = c( log.u , log.alpha.weight )
-      c = max(temp)
+      temp <- c( log.u , log.alpha.weight )
+      c <- max(temp)
       log.u <- c + log( sum( exp( temp - c ) ) )
       to.resample[k] <- log.alpha
     }
@@ -211,7 +211,7 @@ resample <- function(to.resample,alpha){
       # u <- u - w
       # and w is not resampled, given weight 0 (-Inf for log(w))
       temp <- c( log.u , to.resample[k] )
-      c = max(temp)
+      c <- max(temp)
       log.u <- c + log( exp( temp[1] - c ) - exp( temp[2] - c )  )
       to.resample[k] <- - Inf
     
@@ -243,10 +243,10 @@ P.A <- function(s, t, mu_seq, N, S, p){
   # evaluating log of quantity
   for (k in 1:length(mu_seq)){
 
-    Z = mu_seq[k] * (S[(t+1),] - S[s,] - mu_seq[k] * (t-s+1)/2) + log(p) - log(1-p)
-    Q = log( 1 + exp(Z) )
-    wQ = which(Q == Inf)
-    Q[wQ] = Z[wQ]
+    Z <- mu_seq[k] * (S[(t+1),] - S[s,] - mu_seq[k] * (t-s+1)/2) + log(p) - log(1-p)
+    Q <- log( 1 + exp(Z) )
+    wQ <- which(Q == Inf)
+    Q[wQ] <- Z[wQ]
     vec[k] <- N*log(1-p) + sum(Q)
     
   }
@@ -267,13 +267,13 @@ Rbard <- function(data, bardparams, mu_seq, alpha = 1e-4){
     stop("Not enough params should be a vector of length 6.")
   }
 
-  k_N = bardparams[1]
-  p_N = bardparams[2]
-  k_A = bardparams[3]
-  p_A = bardparams[4]
-  pi_N = bardparams[5]
-  affected_dim = bardparams[6]
-  pi_A = 1 - pi_N
+  k_N <- bardparams[1]
+  p_N <- bardparams[2]
+  k_A <- bardparams[3]
+  p_A <- bardparams[4]
+  pi_N <- bardparams[5]
+  affected_dim <- bardparams[6]
+  pi_A <- 1 - pi_N
 
   ## stat distribution qN , qA
   EN <- ( k_N * (1-p_N) )/p_N
@@ -284,8 +284,8 @@ Rbard <- function(data, bardparams, mu_seq, alpha = 1e-4){
   qN <- log(EA) - ldenom
 
   # length and dimension of data
-  n = dim(data)[1]
-  N = dim(data)[2]
+  n <- dim(data)[1]
+  N <- dim(data)[2]
   # data summaries etc
   S <- rbind( rep(0,dim(data)[2]) , apply(data , 2 , cumsum) )
   S_2 <- cumsum( c( 0 , rowSums(data^2) ) )
@@ -478,7 +478,7 @@ Rbard <- function(data, bardparams, mu_seq, alpha = 1e-4){
 
   }
 
-  sampler_params = list("mu_seq"=mu_seq, "N"=N, "S"=S, "p"=p)
+  sampler_params <- list("mu_seq"=mu_seq, "N"=N, "S"=S, "p"=p)
   newList <- list("weights" = weights,
                   "locations" = locations,
                   "type" = type,
@@ -543,6 +543,49 @@ bard.sampler.class<-function(bard.result,gamma,num_draws,sampler.result,marginal
 }
 
 
+#' @name summary
+#'
+#' @docType methods
+#'
+#' @rdname summary-methods
+#'
+#' @aliases summary,bard.class-method
+#'
+#' @export
+setMethod("summary",signature=list("bard.class"),function(object,...)
+{
+    cat("BARD detecting changes in mean","\n",sep="")
+    cat("observations = ",dim(object@data)[1],sep="")
+    cat("\n",sep="")
+    cat("variates = ",dim(object@data)[2],"\n",sep="")
+    cat("p_N = ",object@p_N,"\n",sep="")
+    cat("p_A = ",object@p_A,"\n",sep="")
+    cat("k_N = ",object@k_N,"\n",sep="")
+    cat("k_A = ",object@k_A,"\n",sep="")
+    cat("pi_N = ",object@pi_N,"\n",sep="")
+    cat("alpha = ",object@alpha,"\n",sep="")
+    cat("paffected = ",object@paffected,"\n",sep="")
+    cat("lower = ",object@lower,"\n",sep="")
+    cat("upper = ",object@upper,"\n",sep="")
+    cat("h = ",object@h,"\n",sep="")
+    invisible()
+})
+
+#' @name show
+#'
+# #' @docType methods
+#'
+#' @rdname show-methods
+#'
+#' @aliases show,bard.class-method
+#'
+#' @export
+setMethod("show",signature=list("bard.class"),function(object)
+{
+    summary(object)
+    invisible()
+})
+
 
 #' Detection of multivariate anomalous segments using BARD.
 #'
@@ -553,23 +596,22 @@ bard.sampler.class<-function(bard.result,gamma,num_draws,sampler.result,marginal
 #' Inference is conducted by solving a set of recursions. To reduce computational and storage costs a resampling 
 #' step is included.
 #' 
-#' @param x An n x p real matrix representing n observations of p variates. The time series data classes ts, xts, and zoo are also supported.
-#' @param p_N Hyper-parameter of the negative binomial distribution for the length of non-anomalous segments (probability of success). Defaults to \deqn{\frac{1}{n+1}.}
-#' @param p_A Hyper-parameter of the negative binomial distribution for the length of anomalous segments (probability of success). Defaults to \deqn{\frac{5}{n}.}
+#' @param x A numeric matrix with n rows and p columns containing the data which is to be inspected. The time series data classes ts, xts, and zoo are also supported.
+#' @param p_N Hyper-parameter of the negative binomial distribution for the length of non-anomalous segments (probability of success). Defaults to \eqn{\frac{1}{n+1}.}
+#' @param p_A Hyper-parameter of the negative binomial distribution for the length of anomalous segments (probability of success). Defaults to \eqn{\frac{5}{n}.}
 #' @param k_N Hyper-parameter of the negative binomial distribution for the length of non-anomalous segments (size). Defaults to 1.
-#' @param k_A Hyper-parameter of the negative binomial distribution for the length of anomalous segments (size). Defaults to \deqn{\frac{5p_A}{1- p_A}.}
+#' @param k_A Hyper-parameter of the negative binomial distribution for the length of anomalous segments (size). Defaults to \eqn{\frac{5p_A}{1- p_A}.}
 #' @param pi_N Probability that an anomalous segment is followed by a non-anomalous segment. Defaults to 0.9.
 #' @param paffected Proportion of the variates believed to be affected by any given anomalous segment. Defaults to 5\%. 
 #' This parameter is relatively robust to being mis-specified and is studied empirically in Section 5.1 of \insertCite{bardwell2017;textual}{anomaly}.
-#' @param lower The lower limit of the the prior uniform distribution for the mean of an anomalous segment \eqn{\mu}. Defaults to \deqn{2\sqrt{\frac{\log(n)}{n}}.}
+#' @param lower The lower limit of the the prior uniform distribution for the mean of an anomalous segment \eqn{\mu}. Defaults to \eqn{2\sqrt{\frac{\log(n)}{n}}.}
 #' @param upper The upper limit of the prior uniform distribution for the mean of an anomalous segment \eqn{\mu}. 
-#' Defaults to the largest standardised value of x, i.e. \code{max(transform(x))}.
+#' Defaults to the largest value of x.
 #' @param alpha Threshold used to control the resampling in the approximation of the posterior distribution at each time step. A sensible default is 1e-4.
 #' Decreasing alpha increases the accuracy of the posterior distribution but also increases the computational complexity of the algorithm. 
 #' @param h The step size in the numerical integration used to find the marginal likelihood. 
 #' The quadrature points are located from \code{lower} to \code{upper} in steps of \code{h}. Defaults to 0.25. 
 #' Decreasing this parameter increases the accuracy of the calculation for the marginal likelihood but increases computational complexity.   
-#' @param transform A function used to transform the data prior to analysis. The default value is to scale the data using the median and the median absolute deviation.
 #' 
 #' @section Notes on default hyper-parameters:
 #' This function gives certain default hyper-parameters for the two segment length distributions.
@@ -587,9 +629,7 @@ bard.sampler.class<-function(bard.result,gamma,num_draws,sampler.result,marginal
 #' @examples
 #' 
 #' library(anomaly)
-#' set.seed(0)
-#' sim.data<-simulate(n=500,p=50,mu=2,locations=c(100,200,300),
-#'                    duration=6,proportions=c(0.04,0.06,0.08))
+#' data(simulated)
 #' # run bard
 #' bard.res<-bard(sim.data, alpha = 1e-3, h = 0.5)
 #' sampler.res<-sampler(bard.res)
@@ -598,7 +638,7 @@ bard.sampler.class<-function(bard.result,gamma,num_draws,sampler.result,marginal
 #' plot(sampler.res,marginals=TRUE)
 #' }
 #' @export
-bard<-function(x, p_N = 1/(nrow(x)+1), p_A = 5/nrow(x), k_N = 1, k_A = (5*p_A)/(1-p_A), pi_N = 0.9, paffected = 0.05, lower = 2*sqrt(log(nrow(x))/nrow(x)), upper = max(transform(x)), alpha=1e-4, h=0.25, transform=robustscale)
+bard<-function(x, p_N = 1/(nrow(x)+1), p_A = 5/nrow(x), k_N = 1, k_A = (5*p_A)/(1-p_A), pi_N = 0.9, paffected = 0.05, lower = 2*sqrt(log(nrow(x))/nrow(x)), upper = max(x), alpha=1e-4, h=0.25)
 {
     # check the data
     x<-to_array(x)
@@ -622,12 +662,6 @@ bard<-function(x, p_N = 1/(nrow(x)+1), p_A = 5/nrow(x), k_N = 1, k_A = (5*p_A)/(
     {
         stop("x must be of type numeric")
     }
-    if(!is_function(transform))
-    {
-      stop("transform must be a function")
-    }
-    # transform the data
-    x <- transform(x)
     
     # now convert the data to a list of vectors for marshalling to Rcpp
     # data<-Map(function(i) unlist(data[i,]),1:nrow(data))
@@ -805,31 +839,31 @@ get.states <- function(segs, states, n){
 }
 
 
-format_output = function(R){
+format_output <- function(R){
   
-  n = length(R)
-  weights = vector("list", n) 
-  location = vector("list", n)
-  type = vector("list", n)
+  n <- length(R)
+  weights <- vector("list", n) 
+  location <- vector("list", n)
+  type <- vector("list", n)
   for (i in 1:n){
     
-    m = length(R[[i]])
-    tmpweights = numeric(2*m)
-    tmplocs = numeric(2*m)
-    tmptypes = numeric(2*m)
+    m <- length(R[[i]])
+    tmpweights <- numeric(2*m)
+    tmplocs <- numeric(2*m)
+    tmptypes <- numeric(2*m)
     for (j in 1:m){
-      triple = R[[i]][[j]]
-      tmpweights[(2*j-1):(2*j)] = triple[1:2] 
-      tmplocs[(2*j-1):(2*j)] = as.integer(triple[3])
-      tmptypes[(2*j-1):(2*j)] = c(0,1) 
+      triple <- R[[i]][[j]]
+      tmpweights[(2*j-1):(2*j)] <- triple[1:2] 
+      tmplocs[(2*j-1):(2*j)] <- as.integer(triple[3])
+      tmptypes[(2*j-1):(2*j)] <- c(0,1) 
     }
-    weights[[i]] = tmpweights[tmpweights > -Inf]
-    location[[i]] = tmplocs[tmpweights > -Inf]
-    type[[i]] = tmptypes[tmpweights > -Inf]
+    weights[[i]] <- tmpweights[tmpweights > -Inf]
+    location[[i]] <- tmplocs[tmpweights > -Inf]
+    type[[i]] <- tmptypes[tmpweights > -Inf]
     
   }
   
-  filtering = list("weights"=weights, "locations"=location, "type"=type)
+  filtering <- list("weights"=weights, "locations"=location, "type"=type)
   return(filtering)
   
 }
@@ -856,9 +890,7 @@ format_output = function(R){
 #'
 #' @examples
 #' library(anomaly)
-#' set.seed(0)
-#' sim.data<-simulate(n=500,p=50,mu=2,locations=c(100,200,300),
-#' duration=6,proportions=c(0.04,0.06,0.08))
+#' data(simulated)
 #' # run bard
 #' res<-bard(sim.data, alpha = 1e-3, h = 0.5)
 #' # sample 
@@ -872,16 +904,12 @@ sampler<-function(bard_result, gamma = 1/3, num_draws = 1000)
 }
 
 
-#' @name plot-bard.sampler.class
-#'
-#' @docType methods
-#'
 #' @param marginals Logical value. If \code{marginals=TRUE} the plot will include visualisations of the marginal probablities of each time point being anomalous.
 #' The defualt is \code{marginals=FALSE}. 
 #' 
 #' @rdname plot-methods
 #'
-#' @aliases plot,bard.sampler.class,ANY-method
+#' @aliases plot,bard.sampler.class
 #'
 #' @export
 setMethod("plot",signature=list("bard.sampler.class"),function(x,subset,variate_names,tile_plot,marginals=FALSE)
@@ -930,7 +958,7 @@ setMethod("plot",signature=list("bard.sampler.class"),function(x,subset,variate_
                   object@sampled.res)
        )
        n.df<-data.frame("n"=seq(1,nrow(df)))
-       molten.data<-melt(cbind(n.df,df),id="n")
+       molten.data<-gather(cbind(n.df,df),variable,value,-n)
        out<-ggplot(molten.data, aes(n,variable))
        out<-out+geom_tile(aes(fill=value))
        #out<-out + theme(legend.position="none")
@@ -950,27 +978,9 @@ setMethod("plot",signature=list("bard.sampler.class"),function(x,subset,variate_
    }
    
     sample.plot<-gen.sample.plot(x)
-    return( suppressWarnings(cowplot::plot_grid(tile.plot,sample.plot,marginal.prob.plot, align = "v", ncol = 1, rel_heights = c(1, 1,1))) )
+    return( suppressWarnings(cowplot::plot_grid(sample.plot,marginal.prob.plot, align = "v", ncol = 1, rel_heights = c(1,1))) )
 })
 
-
-#' @name show
-#'
-#' @docType methods
-#'
-#' @rdname show-methods
-#'
-#' @aliases show,bard.class-method
-#'
-#' @export
-setMethod("show",signature=list("bard.class"),function(object)
-{
-    cat("BARD detecting changes in mean","\n",sep="")
-    cat("observations = ",dim(object@data)[1],sep="")
-    cat("\n",sep="")
-    cat("variates = ",dim(object@data)[2],"\n",sep="")
-    invisible()
-})
 
 
 #' @name summary
@@ -995,14 +1005,13 @@ setMethod("summary",signature=list("bard.sampler.class"),function(object,...)
 
 #' @name show
 #'
-#' @docType methods
+# #' @docType methods
 #'
 #' @rdname show-methods
 #'
 #' @aliases show,bard.sampler.class-method
 #'
 #' @export
-if(!isGeneric("collective_anomalies")) {setGeneric("collective_anomalies",function(object,...) {standardGeneric("collective_anomalies")})}
 setMethod("show",signature=list("bard.sampler.class"),function(object)
 {
     summary(object)
@@ -1015,38 +1024,37 @@ setMethod("show",signature=list("bard.sampler.class"),function(object)
 
 #' @name collective_anomalies
 #'
-#' @docType methods
-#'
+# #' @docType methods
+#' @include generics.R
 #' @rdname collective_anomalies-methods
 #'
 #' @aliases collective_anomalies,bard.sampler.class-method
 #'
 #' 
 #' 
-#' @export
+# #' @export
 setMethod("collective_anomalies",signature=list("bard.sampler.class"),function(object)
 {
     return(object@sampler.result)
 })
 
 
-check.k = function(input){
+check.k <- function(input){
   
-  res = (length(input) == 1) && (is.numeric(input)) && (!is.nan(input)) && (!is.infinite(input)) && (input > 0)
+  res <- (length(input) == 1) && (is.numeric(input)) && (!is.nan(input)) && (!is.infinite(input)) && (input > 0)
   return(res)
   
 }
 
-check.p = function(input){
+check.p <- function(input){
   
-  res = (length(input) == 1) && (is.numeric(input)) && (!is.nan(input)) && (!is.infinite(input)) && (input > 0) && (input < 1)
+  res <- (length(input) == 1) && (is.numeric(input)) && (!is.nan(input)) && (!is.infinite(input)) && (input > 0) && (input < 1)
   return(res)
-  
 }
 
-check.lu = function(input){
+check.lu <- function(input){
   
-  res = (length(input) == 1) && (is.numeric(input)) && (!is.nan(input))
+  res <- (length(input) == 1) && (is.numeric(input)) && (!is.nan(input))
   return(res)
   
 }
